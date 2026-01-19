@@ -52,7 +52,7 @@ if (!$res) {
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
-require_once DOL_DOCUMENT_ROOT.'/rgwarranty/lib/rgwarranty.lib.php';
+dol_include_once('/gestionnairerg/lib/rgwarranty.lib.php');
 
 $langs->loadLangs(array('rgwarranty@rgwarranty', 'companies', 'projects', 'bills'));
 

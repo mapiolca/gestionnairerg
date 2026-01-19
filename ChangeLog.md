@@ -23,3 +23,11 @@ Initial version
 ## 1.1.4
 
 * Suppression du descripteur module legacy modGestionnaireRG.
+
+## 1.1.5
+
+* Correction des chemins d'inclusion du module rgwarranty dans l'interface.
+
+## 1.1.6
+
+* Correction du chargement SQL et des chemins de module rgwarranty.

@@ -58,8 +58,8 @@ class modRGWarranty extends DolibarrModules
 			'hooks' => array(),
 		);
 
-		$this->dirs = array('/rgwarranty/temp', '/rgwarranty/rgw_cycle');
-		$this->config_page_url = array('setup.php@rgwarranty');
+		$this->dirs = array('/gestionnairerg/temp', '/gestionnairerg/rgw_cycle');
+		$this->config_page_url = array('setup.php@gestionnairerg');
 		$this->hidden = getDolGlobalInt('MODULE_RGWARRANTY_DISABLED');
 		$this->depends = array();
 		$this->requiredby = array();
@@ -87,7 +87,7 @@ class modRGWarranty extends DolibarrModules
 			0 => array(
 				'label' => 'RGWCronUpdateStatus',
 				'jobtype' => 'method',
-				'class' => '/rgwarranty/class/rg_cycle.class.php',
+				'class' => '/gestionnairerg/class/rg_cycle.class.php',
 				'objectname' => 'RGCycle',
 				'method' => 'runCronStatusUpdate',
 				'parameters' => '',
@@ -163,7 +163,7 @@ class modRGWarranty extends DolibarrModules
 	{
 		global $conf, $langs;
 
-		$result = $this->_load_tables('/rgwarranty/sql/');
+		$result = $this->_load_tables('/gestionnairerg/sql/');
 		if ($result < 0) {
 			return -1;
 		}
@@ -172,7 +172,7 @@ class modRGWarranty extends DolibarrModules
 
 		$sql = array();
 
-		$moduledir = dol_sanitizeFileName('rgwarranty');
+		$moduledir = dol_sanitizeFileName('gestionnairerg');
 		$object = 'rgw_cycle';
 		$src = DOL_DOCUMENT_ROOT.'/install/doctemplates/'.$moduledir.'/template_rgrequest.odt';
 		$dirodt = DOL_DATA_ROOT.($conf->entity > 1 ? '/'.$conf->entity : '').'/doctemplates/'.$moduledir;

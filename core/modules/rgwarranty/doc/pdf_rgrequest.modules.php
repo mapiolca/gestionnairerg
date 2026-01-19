@@ -30,7 +30,7 @@ require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
 require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/rgwarranty/lib/rgwarranty.lib.php';
+dol_include_once('/gestionnairerg/lib/rgwarranty.lib.php');
 
 /**
  * PDF model class

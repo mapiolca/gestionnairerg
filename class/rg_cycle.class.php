@@ -214,7 +214,7 @@ class RGCycle extends CommonObject
 				$sqlupdate .= " SET status = ".self::STATUS_TO_REQUEST;
 				$sqlupdate .= " WHERE rowid = ".((int) $obj->rowid);
 				if ($this->db->query($sqlupdate)) {
-					require_once DOL_DOCUMENT_ROOT.'/rgwarranty/lib/rgwarranty.lib.php';
+					dol_include_once('/gestionnairerg/lib/rgwarranty.lib.php');
 					rgwarranty_log_event($this->db, $conf->entity, $obj->rowid, 'RG_STATUS_AUTO', $langs->trans('RGWStatusToRequest'), $user);
 				}
 			}

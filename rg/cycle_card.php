@@ -55,8 +55,8 @@ require_once DOL_DOCUMENT_ROOT.'/compta/facture/lib/facture.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
 require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
-require_once DOL_DOCUMENT_ROOT.'/rgwarranty/class/rg_cycle.class.php';
-require_once DOL_DOCUMENT_ROOT.'/rgwarranty/lib/rgwarranty.lib.php';
+dol_include_once('/gestionnairerg/class/rg_cycle.class.php');
+dol_include_once('/gestionnairerg/lib/rgwarranty.lib.php');
 
 $langs->loadLangs(array('rgwarranty@rgwarranty', 'companies', 'projects', 'bills', 'other'));
 
