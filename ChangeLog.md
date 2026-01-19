@@ -39,3 +39,7 @@ Initial version
 ## 1.1.8
 
 * Chargement des bibliothèques via chemins relatifs et garde sur la classe modRGWarranty.
+
+## 1.1.9
+
+* Suppression des références à l'ancien dossier du module.

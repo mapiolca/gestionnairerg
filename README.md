@@ -1,4 +1,4 @@
-# GESTIONNAIRERG FOR [DOLIBARR ERP & CRM](https://www.dolibarr.org)
+# RGWARRANTY FOR [DOLIBARR ERP & CRM](https://www.dolibarr.org)
 
 ## Features
 
@@ -9,7 +9,7 @@
 * Saisie d'un paiement unique ventilé sur les factures du cycle.
 
 <!--
-![Screenshot gestionnairerg](img/screenshot_gestionnairerg.png?raw=true "GestionnaireRG"){imgmd}
+![Screenshot rgwarranty](img/screenshot_rgwarranty.png?raw=true "RGWarranty"){imgmd}
 -->
 
 Other external modules are available on [Dolistore.com](https://www.dolistore.com).
@@ -70,11 +70,11 @@ Note: If this screen tells you that there is no "custom" directory, check that y
 
 ### From a GIT repository
 
-Clone the repository in `$dolibarr_main_document_root_alt/gestionnairerg`
+Clone the repository in `$dolibarr_main_document_root_alt/rgwarranty`
 
 ```shell
 cd ....../custom
-git clone git@github.com:gitlogin/gestionnairerg.git gestionnairerg
+git clone git@github.com:gitlogin/rgwarranty.git rgwarranty
 ```
 
 -->

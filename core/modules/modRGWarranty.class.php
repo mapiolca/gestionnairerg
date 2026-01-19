@@ -59,8 +59,8 @@ if (!class_exists('modRGWarranty')) {
 			'hooks' => array(),
 		);
 
-		$this->dirs = array('/gestionnairerg/temp', '/gestionnairerg/rgw_cycle');
-		$this->config_page_url = array('setup.php@gestionnairerg');
+		$this->dirs = array('/rgwarranty/temp', '/rgwarranty/rgw_cycle');
+		$this->config_page_url = array('setup.php@rgwarranty');
 		$this->hidden = getDolGlobalInt('MODULE_RGWARRANTY_DISABLED');
 		$this->depends = array();
 		$this->requiredby = array();
@@ -88,7 +88,7 @@ if (!class_exists('modRGWarranty')) {
 			0 => array(
 				'label' => 'RGWCronUpdateStatus',
 				'jobtype' => 'method',
-				'class' => '/gestionnairerg/class/rg_cycle.class.php',
+				'class' => '/rgwarranty/class/rg_cycle.class.php',
 				'objectname' => 'RGCycle',
 				'method' => 'runCronStatusUpdate',
 				'parameters' => '',
@@ -164,7 +164,7 @@ if (!class_exists('modRGWarranty')) {
 	{
 		global $conf, $langs;
 
-		$result = $this->_load_tables('/gestionnairerg/sql/');
+		$result = $this->_load_tables('/rgwarranty/sql/');
 		if ($result < 0) {
 			return -1;
 		}
@@ -173,7 +173,7 @@ if (!class_exists('modRGWarranty')) {
 
 		$sql = array();
 
-		$moduledir = dol_sanitizeFileName('gestionnairerg');
+		$moduledir = dol_sanitizeFileName('rgwarranty');
 		$object = 'rgw_cycle';
 		$src = DOL_DOCUMENT_ROOT.'/install/doctemplates/'.$moduledir.'/template_rgrequest.odt';
 		$dirodt = DOL_DATA_ROOT.($conf->entity > 1 ? '/'.$conf->entity : '').'/doctemplates/'.$moduledir;
