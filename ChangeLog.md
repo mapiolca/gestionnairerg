@@ -35,3 +35,7 @@ Initial version
 ## 1.1.7
 
 * Correction des inclusions facture dans la fiche cycle RG.
+
+## 1.1.8
+
+* Chargement des bibliothèques via chemins relatifs et garde sur la classe modRGWarranty.

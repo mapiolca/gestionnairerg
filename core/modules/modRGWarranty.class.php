@@ -26,8 +26,9 @@ require_once DOL_DOCUMENT_ROOT.'/core/modules/DolibarrModules.class.php';
 /**
  * Module class
  */
-class modRGWarranty extends DolibarrModules
-{
+if (!class_exists('modRGWarranty')) {
+	class modRGWarranty extends DolibarrModules
+	{
 	/**
 	 * Constructor
 	 *
@@ -205,5 +206,6 @@ class modRGWarranty extends DolibarrModules
 	{
 		$sql = array();
 		return $this->_remove($sql, $options);
+	}
 	}
 }

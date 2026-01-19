@@ -50,8 +50,8 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
 require_once DOL_DOCUMENT_ROOT.'/compta/paiement/class/paiement.class.php';
 require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
-dol_include_once('/gestionnairerg/class/rg_cycle.class.php');
-dol_include_once('/gestionnairerg/lib/rgwarranty.lib.php');
+require_once __DIR__.'/../class/rg_cycle.class.php';
+require_once __DIR__.'/../lib/rgwarranty.lib.php';
 
 $langs->loadLangs(array('rgwarranty@rgwarranty', 'banks', 'bills'));
 
