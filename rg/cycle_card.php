@@ -295,9 +295,9 @@ if ($resql) {
 	while ($obj = $db->fetch_object($resql)) {
 		print '<tr class="oddeven">';
 		print '<td>'.dol_print_date($obj->date_event, 'dayhour').'</td>';
-		print '<td>'.dol_escape_htmltag($obj->event_type).'</td>';
-		print '<td>'.dol_escape_htmltag($obj->label).'</td>';
-		print '<td>'.dol_escape_htmltag($obj->login).'</td>';
+		print '<td>'.dol_escape_htmltag((string) $obj->event_type).'</td>';
+		print '<td>'.dol_escape_htmltag((string) $obj->label).'</td>';
+		print '<td>'.dol_escape_htmltag((string) $obj->login).'</td>';
 		print '</tr>';
 	}
 }
