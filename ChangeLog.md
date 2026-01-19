@@ -31,3 +31,7 @@ Initial version
 ## 1.1.6
 
 * Correction du chargement SQL et des chemins de module rgwarranty.
+
+## 1.1.7
+
+* Correction des inclusions facture dans la fiche cycle RG.
