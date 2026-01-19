@@ -246,6 +246,13 @@ print '</tr>';
 			$tmpinvoice->statut = $invoice->status;
 			$invoicestatuslabel = $tmpinvoice->getLibStatut(1);
 		}
+		// EN: Avoid invalid dates for display
+		// FR: Éviter les dates invalides à l'affichage
+		$invoiceDate = '';
+		$invoiceDateTs = $db->jdate($invoice->datef);
+		if (!empty($invoiceDateTs)) {
+			$invoiceDate = dol_print_date($invoiceDateTs, 'day');
+		}
 
 		$sql = "SELECT rg_amount_ttc, rg_paid_ttc FROM ".$db->prefix()."rgw_cycle_facture";
 		$sql .= " WHERE fk_cycle = ".((int) $object->id)." AND fk_facture = ".((int) $invoice->rowid);
@@ -260,7 +267,7 @@ print '</tr>';
 
 		print '<tr class="oddeven">';
 		print '<td><a href="'.DOL_URL_ROOT.'/compta/facture/card.php?facid='.$invoice->rowid.'">'.dol_escape_htmltag($invoice->ref).'</a></td>';
-		print '<td>'.dol_print_date($db->jdate($invoice->datef), 'day').'</td>';
+		print '<td>'.$invoiceDate.'</td>';
 		print '<td>'.$invoicestatuslabel.'</td>';
 		print '<td class="right">'.price($invoice->total_ttc).'</td>';
 		print '<td class="right">'.price($lineamount).'</td>';
@@ -293,8 +300,15 @@ $sql .= " ORDER BY e.date_event DESC";
 $resql = $db->query($sql);
 if ($resql) {
 	while ($obj = $db->fetch_object($resql)) {
+		// EN: Avoid invalid dates for display
+		// FR: Éviter les dates invalides à l'affichage
+		$eventDate = '';
+		$eventDateTs = $db->jdate($obj->date_event);
+		if (!empty($eventDateTs)) {
+			$eventDate = dol_print_date($eventDateTs, 'dayhour');
+		}
 		print '<tr class="oddeven">';
-		print '<td>'.dol_print_date($obj->date_event, 'dayhour').'</td>';
+		print '<td>'.$eventDate.'</td>';
 		print '<td>'.dol_escape_htmltag((string) $obj->event_type).'</td>';
 		print '<td>'.dol_escape_htmltag((string) $obj->label).'</td>';
 		print '<td>'.dol_escape_htmltag((string) $obj->login).'</td>';
