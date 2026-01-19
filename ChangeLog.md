@@ -19,3 +19,7 @@ Initial version
 ## 1.1.3
 
 * Remplacement du FormSetup pour compatibilité Dolibarr 21.
+
+## 1.1.4
+
+* Suppression du descripteur module legacy modGestionnaireRG.
