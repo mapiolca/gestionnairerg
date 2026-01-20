@@ -24,6 +24,14 @@
 // EN: Load core PDF base module
 // FR: Charger le module PDF de base du core
 dol_include_once('/core/modules/modules_pdf.php');
+dol_include_once('/core/lib/pdf.lib.php');
+
+// EN: Ensure base class exists before declaring module driver
+// FR: Vérifier la classe de base avant de déclarer le driver du module
+if (!class_exists('ModelePDF')) {
+	dol_syslog('ModelePDF class not found for rgwarranty documents driver', LOG_ERR);
+	return;
+}
 
 /**
  * PDF model handler for RG Warranty.
