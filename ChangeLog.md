@@ -67,3 +67,7 @@ Initial version
 ## 1.1.15
 
 * Résolution robuste de la racine document pour charger doc_pdf et ModelePDF.
+
+## 1.1.16
+
+* Inclusion sécurisée des dépendances PDF avec fallback multi-chemins.

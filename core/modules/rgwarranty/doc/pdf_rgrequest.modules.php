@@ -21,79 +21,63 @@
  *\brief		PDF model for RG request letter.
  */
 
-// EN: Ensure core helper functions are available
-// FR: S'assurer que les fonctions core sont disponibles
-if (!function_exists('dol_buildpath') && defined('DOL_DOCUMENT_ROOT')) {
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
-}
 // EN: Resolve document root even if DOL_DOCUMENT_ROOT is misconfigured
 // FR: Résoudre la racine document même si DOL_DOCUMENT_ROOT est mal configuré
 $rootPath = (defined('DOL_DOCUMENT_ROOT') && is_dir(DOL_DOCUMENT_ROOT.'/core')) ? DOL_DOCUMENT_ROOT : dirname(__FILE__, 7);
+
+// EN: Include helper with multiple fallbacks
+// FR: Helper d'inclusion avec plusieurs fallbacks
+if (!function_exists('rgwarranty_require_once')) {
+	function rgwarranty_require_once($relativePath, $rootPath)
+	{
+		// EN: Try dol_buildpath if available
+		// FR: Essayer dol_buildpath si disponible
+		if (function_exists('dol_buildpath')) {
+			$absPath = dol_buildpath($relativePath, 0);
+			if ($absPath && is_file($absPath)) {
+				require_once $absPath;
+				return true;
+			}
+		}
+		// EN: Try dol_include_once with relative path
+		// FR: Essayer dol_include_once avec chemin relatif
+		if (function_exists('dol_include_once') && dol_include_once($relativePath)) {
+			return true;
+		}
+		// EN: Try resolved root path
+		// FR: Essayer la racine résolue
+		$absFallback = $rootPath.$relativePath;
+		if (is_file($absFallback)) {
+			require_once $absFallback;
+			return true;
+		}
+		return false;
+	}
+}
+
+// EN: Ensure core helper functions are available
+// FR: S'assurer que les fonctions core sont disponibles
+rgwarranty_require_once('/core/lib/functions.lib.php', $rootPath);
+
 // EN: Load base PDF class with multi-version paths
 // FR: Charger la classe PDF de base avec chemins multi-version
-$docPdfPaths = array(
-	$rootPath.'/core/modules/doc_pdf.class.php',
-	$rootPath.'/core/modules/pdf/doc_pdf.class.php',
-	$rootPath.'/core/modules/common/doc_pdf.class.php',
-);
-$docPdfLoaded = false;
-foreach ($docPdfPaths as $docPdfPath) {
-	if (!$docPdfPath || !is_file($docPdfPath)) {
-		continue;
-	}
-	require_once $docPdfPath;
-	$docPdfLoaded = true;
-	break;
-}
-if (!$docPdfLoaded && function_exists('dol_include_once')) {
-	foreach (array('/core/modules/doc_pdf.class.php', '/core/modules/pdf/doc_pdf.class.php', '/core/modules/common/doc_pdf.class.php') as $docPdfRelPath) {
-		if (dol_include_once($docPdfRelPath)) {
-			$docPdfLoaded = true;
-			break;
-		}
+foreach (array('/core/modules/doc_pdf.class.php', '/core/modules/pdf/doc_pdf.class.php', '/core/modules/common/doc_pdf.class.php') as $docPdfRelPath) {
+	if (rgwarranty_require_once($docPdfRelPath, $rootPath)) {
+		break;
 	}
 }
-// EN: Hard fallback using resolved root path for environments without dol_buildpath/dol_include_once resolution
-// FR: Fallback direct via racine résolue pour les environnements sans résolution dol_buildpath/dol_include_once
-if (!$docPdfLoaded && is_file($rootPath.'/core/modules/doc_pdf.class.php')) {
-	require_once $rootPath.'/core/modules/doc_pdf.class.php';
-	$docPdfLoaded = true;
-}
-if (!$docPdfLoaded && is_file($rootPath.'/core/modules/pdf/doc_pdf.class.php')) {
-	require_once $rootPath.'/core/modules/pdf/doc_pdf.class.php';
-	$docPdfLoaded = true;
-}
-if (!$docPdfLoaded && is_file($rootPath.'/core/modules/common/doc_pdf.class.php')) {
-	require_once $rootPath.'/core/modules/common/doc_pdf.class.php';
-	$docPdfLoaded = true;
-}
-// EN: Fallback by relative path when DOL_DOCUMENT_ROOT is not usable
-// FR: Fallback par chemin relatif si DOL_DOCUMENT_ROOT n'est pas exploitable
-if (!class_exists('ModelePDF')) {
-	$docPdfFallbackPaths = array(
-		$rootPath.'/core/modules/doc_pdf.class.php',
-		$rootPath.'/core/modules/pdf/doc_pdf.class.php',
-		$rootPath.'/core/modules/common/doc_pdf.class.php',
-	);
-	foreach ($docPdfFallbackPaths as $docPdfFallbackPath) {
-		if (!is_file($docPdfFallbackPath)) {
-			continue;
-		}
-		require_once $docPdfFallbackPath;
-		if (class_exists('ModelePDF')) {
-			break;
-		}
-	}
-}
-require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
-require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
-require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-require_once dol_buildpath('/rgwarranty/lib/rgwarranty.lib.php', 0);
+
+// EN: Load dependencies with safe fallbacks
+// FR: Charger les dépendances avec fallbacks sûrs
+rgwarranty_require_once('/core/lib/pdf.lib.php', $rootPath);
+rgwarranty_require_once('/core/lib/company.lib.php', $rootPath);
+rgwarranty_require_once('/core/lib/date.lib.php', $rootPath);
+rgwarranty_require_once('/core/lib/functions2.lib.php', $rootPath);
+rgwarranty_require_once('/societe/class/societe.class.php', $rootPath);
+rgwarranty_require_once('/projet/class/project.class.php', $rootPath);
+rgwarranty_require_once('/compta/facture/class/facture.class.php', $rootPath);
+rgwarranty_require_once('/core/lib/files.lib.php', $rootPath);
+rgwarranty_require_once('/rgwarranty/lib/rgwarranty.lib.php', $rootPath);
 
 /**
  * PDF model class
