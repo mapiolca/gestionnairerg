@@ -51,3 +51,7 @@ Initial version
 ## 1.1.11
 
 * Fallback supplémentaire de chargement de doc_pdf pour plusieurs chemins Dolibarr.
+
+## 1.1.12
+
+* Correction du chemin de chargement de la bibliothèque rgwarranty dans le modèle PDF.
