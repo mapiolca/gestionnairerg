@@ -23,7 +23,16 @@
 
 // EN: Resolve document root even if DOL_DOCUMENT_ROOT is misconfigured
 // FR: Résoudre la racine document même si DOL_DOCUMENT_ROOT est mal configuré
-$rootPath = (defined('DOL_DOCUMENT_ROOT') && is_dir(DOL_DOCUMENT_ROOT.'/core')) ? DOL_DOCUMENT_ROOT : dirname(__FILE__, 7);
+$rootPath = (defined('DOL_DOCUMENT_ROOT') && is_dir(DOL_DOCUMENT_ROOT.'/core')) ? DOL_DOCUMENT_ROOT : '';
+if (empty($rootPath)) {
+	$rootPath = dirname(__FILE__);
+	while (!empty($rootPath) && $rootPath !== dirname($rootPath)) {
+		if (is_dir($rootPath.'/core')) {
+			break;
+		}
+		$rootPath = dirname($rootPath);
+	}
+}
 
 // EN: Include helper with multiple fallbacks
 // FR: Helper d'inclusion avec plusieurs fallbacks
@@ -61,7 +70,13 @@ rgwarranty_require_once('/core/lib/functions.lib.php', $rootPath);
 
 // EN: Load base PDF class with multi-version paths
 // FR: Charger la classe PDF de base avec chemins multi-version
-foreach (array('/core/modules/doc_pdf.class.php', '/core/modules/pdf/doc_pdf.class.php', '/core/modules/common/doc_pdf.class.php') as $docPdfRelPath) {
+foreach (array(
+	'/core/modules/doc_pdf.class.php',
+	'/core/modules/pdf/doc_pdf.class.php',
+	'/core/modules/common/doc_pdf.class.php',
+	'/core/modules/pdf/modules_pdf.php',
+	'/core/modules/modules_pdf.php',
+) as $docPdfRelPath) {
 	if (rgwarranty_require_once($docPdfRelPath, $rootPath)) {
 		break;
 	}

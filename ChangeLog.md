@@ -71,3 +71,7 @@ Initial version
 ## 1.1.16
 
 * Inclusion sécurisée des dépendances PDF avec fallback multi-chemins.
+
+## 1.1.17
+
+* Détection robuste de la racine htdocs et ajouts de chemins PDF supplémentaires.
