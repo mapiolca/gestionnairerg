@@ -21,12 +21,20 @@
  *\brief		PDF model for RG request letter.
  */
 
+// EN: Ensure core helper functions are available
+// FR: S'assurer que les fonctions core sont disponibles
+if (!function_exists('dol_buildpath') && defined('DOL_DOCUMENT_ROOT')) {
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
+}
+// EN: Resolve document root even if DOL_DOCUMENT_ROOT is misconfigured
+// FR: Résoudre la racine document même si DOL_DOCUMENT_ROOT est mal configuré
+$rootPath = (defined('DOL_DOCUMENT_ROOT') && is_dir(DOL_DOCUMENT_ROOT.'/core')) ? DOL_DOCUMENT_ROOT : dirname(__FILE__, 7);
 // EN: Load base PDF class with multi-version paths
 // FR: Charger la classe PDF de base avec chemins multi-version
 $docPdfPaths = array(
-	dol_buildpath('/core/modules/doc_pdf.class.php', 0),
-	dol_buildpath('/core/modules/pdf/doc_pdf.class.php', 0),
-	dol_buildpath('/core/modules/common/doc_pdf.class.php', 0),
+	$rootPath.'/core/modules/doc_pdf.class.php',
+	$rootPath.'/core/modules/pdf/doc_pdf.class.php',
+	$rootPath.'/core/modules/common/doc_pdf.class.php',
 );
 $docPdfLoaded = false;
 foreach ($docPdfPaths as $docPdfPath) {
@@ -45,24 +53,23 @@ if (!$docPdfLoaded && function_exists('dol_include_once')) {
 		}
 	}
 }
-// EN: Hard fallback using DOL_DOCUMENT_ROOT for environments without dol_buildpath/dol_include_once resolution
-// FR: Fallback direct via DOL_DOCUMENT_ROOT pour les environnements sans résolution dol_buildpath/dol_include_once
-if (!$docPdfLoaded && is_file(DOL_DOCUMENT_ROOT.'/core/modules/doc_pdf.class.php')) {
-	require_once DOL_DOCUMENT_ROOT.'/core/modules/doc_pdf.class.php';
+// EN: Hard fallback using resolved root path for environments without dol_buildpath/dol_include_once resolution
+// FR: Fallback direct via racine résolue pour les environnements sans résolution dol_buildpath/dol_include_once
+if (!$docPdfLoaded && is_file($rootPath.'/core/modules/doc_pdf.class.php')) {
+	require_once $rootPath.'/core/modules/doc_pdf.class.php';
 	$docPdfLoaded = true;
 }
-if (!$docPdfLoaded && is_file(DOL_DOCUMENT_ROOT.'/core/modules/pdf/doc_pdf.class.php')) {
-	require_once DOL_DOCUMENT_ROOT.'/core/modules/pdf/doc_pdf.class.php';
+if (!$docPdfLoaded && is_file($rootPath.'/core/modules/pdf/doc_pdf.class.php')) {
+	require_once $rootPath.'/core/modules/pdf/doc_pdf.class.php';
 	$docPdfLoaded = true;
 }
-if (!$docPdfLoaded && is_file(DOL_DOCUMENT_ROOT.'/core/modules/common/doc_pdf.class.php')) {
-	require_once DOL_DOCUMENT_ROOT.'/core/modules/common/doc_pdf.class.php';
+if (!$docPdfLoaded && is_file($rootPath.'/core/modules/common/doc_pdf.class.php')) {
+	require_once $rootPath.'/core/modules/common/doc_pdf.class.php';
 	$docPdfLoaded = true;
 }
 // EN: Fallback by relative path when DOL_DOCUMENT_ROOT is not usable
 // FR: Fallback par chemin relatif si DOL_DOCUMENT_ROOT n'est pas exploitable
 if (!class_exists('ModelePDF')) {
-	$rootPath = dirname(__FILE__, 6);
 	$docPdfFallbackPaths = array(
 		$rootPath.'/core/modules/doc_pdf.class.php',
 		$rootPath.'/core/modules/pdf/doc_pdf.class.php',
