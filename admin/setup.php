@@ -70,13 +70,26 @@ if (!$user->admin) {
 }
 
 $action = GETPOST('action', 'aZ09');
+$value = GETPOST('value', 'alpha');
+$label = GETPOST('label', 'alpha');
+$scandir = GETPOST('scan_dir', 'alpha');
+$type = 'rgw_cycle';
 
 $form = new Form($db);
 
-if ($action == 'save') {
-	if (!checkToken()) {
+if (in_array($action, array('save', 'setmod', 'set', 'del', 'setdoc', 'specimen'), true)) {
+	// EN: Enforce CSRF token validation for state-changing actions.
+	// FR: Forcer la validation du jeton CSRF pour les actions modifiant l'état.
+	if (GETPOST('token', 'alphanohtml') !== newToken()) {
 		accessforbidden();
 	}
+}
+
+/*
+ * Actions
+ */
+
+if ($action == 'save') {
 	// EN: Save module constants
 	// FR: Enregistrer les constantes du module
 	$delayDays = GETPOSTINT('RGWARRANTY_DELAY_DAYS');
@@ -94,60 +107,49 @@ if ($action == 'save') {
 	dolibarr_set_const($db, 'RGWARRANTY_EMAILTPL_REMINDER', $emailReminder, 'chaine', 0, '', $conf->entity);
 
 	setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
-}
-
-if (in_array($action, array('setmod', 'set', 'del', 'setdoc', 'specimen'), true)) {
-	if (!checkToken()) {
-		accessforbidden();
-	}
-}
-
-// EN: Handle numbering module activation
-// FR: Gérer l'activation du module de numérotation
-if ($action == 'setmod') {
-	$setmod = GETPOST('value', 'alpha');
-	if (!empty($setmod)) {
-		dolibarr_set_const($db, 'RGWARRANTY_ADDON', $setmod, 'chaine', 0, '', $conf->entity);
+} elseif ($action == 'setmod') {
+	// EN: Handle numbering module activation
+	// FR: Gérer l'activation du module de numérotation
+	if (!empty($value)) {
+		dolibarr_set_const($db, 'RGWARRANTY_ADDON', $value, 'chaine', 0, '', $conf->entity);
 		setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
 	}
-}
-
-// EN: Handle document model actions
-// FR: Gérer les actions sur les modèles de documents
-$docType = 'rgw_cycle';
-if (in_array($action, array('set', 'del', 'setdoc', 'specimen'), true)) {
-	$model = GETPOST('model', 'alpha');
-	if (!empty($model)) {
-		if ($action == 'set') {
-			$sql = "SELECT rowid FROM ".$db->prefix()."document_model";
-			$sql .= " WHERE nom = '".$db->escape($model)."' AND type = '".$db->escape($docType)."'";
-			$sql .= " AND entity = ".((int) $conf->entity);
-			$resql = $db->query($sql);
-			if ($resql && $db->num_rows($resql)) {
-				$obj = $db->fetch_object($resql);
-				$sqlupdate = "UPDATE ".$db->prefix()."document_model";
-				$sqlupdate .= " SET active = 1";
-				$sqlupdate .= " WHERE rowid = ".((int) $obj->rowid);
-				$db->query($sqlupdate);
-			} else {
-				$sqlinsert = "INSERT INTO ".$db->prefix()."document_model (nom, type, entity, active)";
-				$sqlinsert .= " VALUES ('".$db->escape($model)."', '".$db->escape($docType)."', ".((int) $conf->entity).", 1)";
-				$db->query($sqlinsert);
-			}
-			setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
-		} elseif ($action == 'del') {
-			$sqldel = "DELETE FROM ".$db->prefix()."document_model";
-			$sqldel .= " WHERE nom = '".$db->escape($model)."' AND type = '".$db->escape($docType)."'";
-			$sqldel .= " AND entity = ".((int) $conf->entity);
-			$db->query($sqldel);
-			setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
-		} elseif ($action == 'setdoc') {
-			dolibarr_set_const($db, 'RGWARRANTY_PDF_MODEL', $model, 'chaine', 0, '', $conf->entity);
-			setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
-		} elseif ($action == 'specimen') {
-			setEventMessages($langs->trans('NotAvailable'), null, 'warnings');
-		}
+} elseif ($action == 'set') {
+	// EN: Activate a document model
+	// FR: Activer un modèle de document
+	$res = addDocumentModel($value, $type, $label, $scandir);
+	if ($res > 0) {
+		setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
+	} else {
+		setEventMessages($langs->trans('Error'), null, 'errors');
 	}
+} elseif ($action == 'del') {
+	// EN: Disable a document model
+	// FR: Désactiver un modèle de document
+	$res = delDocumentModel($value, $type);
+	if ($res > 0) {
+		if (getDolGlobalString('RGWARRANTY_PDF_MODEL') == (string) $value) {
+			dolibarr_del_const($db, 'RGWARRANTY_PDF_MODEL', $conf->entity);
+		}
+		setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
+	} else {
+		setEventMessages($langs->trans('Error'), null, 'errors');
+	}
+} elseif ($action == 'setdoc') {
+	// EN: Set default document model
+	// FR: Définir le modèle de document par défaut
+	if (dolibarr_set_const($db, 'RGWARRANTY_PDF_MODEL', $value, 'chaine', 0, '', $conf->entity)) {
+		$conf->global->RGWARRANTY_PDF_MODEL = $value;
+	}
+
+	$res = delDocumentModel($value, $type);
+	if ($res > 0) {
+		$res = addDocumentModel($value, $type, $label, $scandir);
+	}
+} elseif ($action == 'specimen') {
+	// EN: Specimen not available for this module
+	// FR: Spécimen non disponible pour ce module
+	setEventMessages($langs->trans('NotAvailable'), null, 'warnings');
 }
 
 llxHeader('', $langs->trans('RGWModuleSetup'), '', '', 0, 0, '', '', '', 'mod-admin page-rgwarranty');
@@ -158,6 +160,10 @@ print load_fiche_titre($langs->trans('RGWModuleSetup'), $linkback, 'title_setup'
 
 $head = rgwarranty_admin_prepare_head();
 print dol_get_fiche_head($head, 'setup', $langs->trans('RGWModuleSetup'), -1, 'setup');
+
+// EN: Define model directories to scan
+// FR: Définir les répertoires de modèles à analyser
+$dirmodels = array_merge(array('/custom/'), (array) $conf->modules_parts['models'], array('/'));
 
 // EN: Section Numbering
 // FR: Section Numérotation
@@ -172,42 +178,65 @@ print '<td>'.$langs->trans('Status').'</td>';
 print '<td class="center">'.$langs->trans('Action').'</td>';
 print '</tr>';
 
-$numberingdir = dol_buildpath('/rgwarranty/core/modules/rgwarranty/', 0);
-$numberingfiles = dol_dir_list($numberingdir, 'files', 0, 'mod_.*\.php$', '', 'name', SORT_ASC, 1);
 $activeNumbering = getDolGlobalString('RGWARRANTY_ADDON');
-$foundnumbering = 0;
-if (is_array($numberingfiles)) {
-	foreach ($numberingfiles as $file) {
-		require_once $file['fullname'];
-		$classname = preg_replace('/\.php$/', '', $file['name']);
-		if (class_exists($classname)) {
-			$foundnumbering++;
-			$module = new $classname($db);
-			$modulelabel = $module->name;
-			if (!empty($module->nom)) {
-				$modulelabel = $module->nom;
-			}
-			$example = '-';
-			if (method_exists($module, 'getExample')) {
-				$example = $module->getExample();
-			}
-			$enabled = ($activeNumbering === $classname);
+$arrayofmodules = array();
 
-			print '<tr class="oddeven">';
-			print '<td>'.dol_escape_htmltag($modulelabel).'</td>';
-			print '<td>'.dol_escape_htmltag($module->description).'</td>';
-			print '<td>'.dol_escape_htmltag($example).'</td>';
-			print '<td>'.($enabled ? $langs->trans('Enabled') : $langs->trans('Disabled')).'</td>';
-			print '<td class="center">';
-			if (!$enabled) {
-				print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?action=setmod&token='.newToken().'&value='.$classname.'">'.$langs->trans('Activate').'</a>';
+foreach ($dirmodels as $reldir) {
+	$dir = dol_buildpath($reldir."rgwarranty/core/modules/rgwarranty/");
+	if (is_dir($dir)) {
+		$handle = opendir($dir);
+		if (is_resource($handle)) {
+			while (($file = readdir($handle)) !== false) {
+				if (!is_dir($dir.$file) && preg_match('/^mod_.*\.php$/', $file)) {
+					$classname = preg_replace('/\.php$/', '', $file);
+					require_once $dir.$file;
+
+					if (class_exists($classname)) {
+						$module = new $classname($db);
+						$arrayofmodules[] = $module;
+					}
+				}
 			}
-			print '</td>';
-			print '</tr>';
+			closedir($handle);
 		}
 	}
 }
-if (empty($foundnumbering)) {
+
+$arrayofmodules = dol_sort_array($arrayofmodules, 'position');
+
+if (!empty($arrayofmodules)) {
+	foreach ($arrayofmodules as $module) {
+		$modulelabel = $module->name;
+		if (!empty($module->nom)) {
+			$modulelabel = $module->nom;
+		}
+		$modulename = '';
+		if (method_exists($module, 'getName')) {
+			$modulename = $module->getName($langs);
+		} elseif (!empty($module->name)) {
+			$modulename = $module->name;
+		} else {
+			$modulename = get_class($module);
+		}
+		$example = '-';
+		if (method_exists($module, 'getExample')) {
+			$example = $module->getExample();
+		}
+		$enabled = ($activeNumbering === $modulename || $activeNumbering === get_class($module));
+
+		print '<tr class="oddeven">';
+		print '<td>'.dol_escape_htmltag($modulelabel).'</td>';
+		print '<td>'.dol_escape_htmltag($module->description).'</td>';
+		print '<td>'.dol_escape_htmltag($example).'</td>';
+		print '<td>'.($enabled ? $langs->trans('Enabled') : $langs->trans('Disabled')).'</td>';
+		print '<td class="center">';
+		if (!$enabled) {
+			print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?action=setmod&token='.newToken().'&value='.urlencode($modulename).'">'.$langs->trans('Activate').'</a>';
+		}
+		print '</td>';
+		print '</tr>';
+	}
+} else {
 	print '<tr class="oddeven"><td colspan="5"><span class="opacitymedium">'.$langs->trans('RGWNoNumberingModule').'</span></td></tr>';
 }
 print '</table>';
@@ -219,63 +248,94 @@ print load_fiche_titre($langs->trans('RGWAdminSectionDocuments'));
 print '<div class="div-table-responsive-no-min">';
 print '<table class="noborder centpercent">';
 print '<tr class="liste_titre">';
-print '<td>'.$langs->trans('Model').'</td>';
+print '<td>'.$langs->trans('Name').'</td>';
 print '<td>'.$langs->trans('Description').'</td>';
-print '<td>'.$langs->trans('Status').'</td>';
-print '<td>'.$langs->trans('Default').'</td>';
+print '<td class="center">'.$langs->trans('Status').'</td>';
+print '<td class="center">'.$langs->trans('Default').'</td>';
 print '<td class="center">'.$langs->trans('Action').'</td>';
 print '</tr>';
 
-$models = getListOfModels($db, $docType, 0);
-$defaultmodel = getDolGlobalString('RGWARRANTY_PDF_MODEL', 'rgrequest');
-$activeModels = array();
-$sqlmodel = "SELECT nom, active FROM ".$db->prefix()."document_model";
-$sqlmodel .= " WHERE type = '".$db->escape($docType)."' AND entity = ".((int) $conf->entity);
-$resmodel = $db->query($sqlmodel);
-if ($resmodel) {
-	while ($obj = $db->fetch_object($resmodel)) {
-		$activeModels[$obj->nom] = (int) $obj->active;
+// EN: Load array of activated templates
+// FR: Charger le tableau des modèles activés
+$def = array();
+$sql = "SELECT nom";
+$sql .= " FROM ".$db->prefix()."document_model";
+$sql .= " WHERE type = '".$db->escape($type)."'";
+$sql .= " AND entity = ".((int) $conf->entity);
+$resql = $db->query($sql);
+if ($resql) {
+	while ($obj = $db->fetch_object($resql)) {
+		$def[] = $obj->nom;
 	}
+} else {
+	dol_print_error($db);
 }
 
+$defaultmodel = getDolGlobalString('RGWARRANTY_PDF_MODEL', 'rgrequest');
 $foundmodel = 0;
-if (is_array($models)) {
-	foreach ($models as $model) {
-		$foundmodel++;
-		$enabled = !empty($activeModels[$model]);
-		$isdefault = ($model === $defaultmodel);
-		$modeldesc = '';
-		$modelpath = dol_buildpath('/rgwarranty/core/modules/rgwarranty/doc/pdf_'.$model.'.modules.php', 0);
-		if (is_file($modelpath)) {
-			require_once $modelpath;
-			$classname = 'pdf_'.$model;
-			if (class_exists($classname)) {
-				$modelobj = new $classname($db);
-				if (!empty($modelobj->description)) {
-					$modeldesc = $modelobj->description;
+
+foreach ($dirmodels as $reldir) {
+	foreach (array('', '/doc') as $valdir) {
+		$realpath = $reldir."rgwarranty/core/modules/rgwarranty".$valdir;
+		$dir = dol_buildpath($realpath);
+
+		if (is_dir($dir)) {
+			$handle = opendir($dir);
+			if (is_resource($handle)) {
+				$filelist = array();
+				while (($file = readdir($handle)) !== false) {
+					$filelist[] = $file;
+				}
+				closedir($handle);
+				arsort($filelist);
+
+				foreach ($filelist as $file) {
+					if (preg_match('/\.modules\.php$/i', $file) && preg_match('/^pdf_/', $file)) {
+						if (file_exists($dir.'/'.$file)) {
+							$foundmodel++;
+							$name = substr($file, 4, dol_strlen($file) - 16);
+							$classname = substr($file, 0, dol_strlen($file) - 12);
+
+							require_once $dir.'/'.$file;
+							$module = new $classname($db);
+
+							$modulelabel = empty($module->name) ? $name : $module->name;
+							$enabled = in_array($name, $def, true);
+							$isdefault = ($name === $defaultmodel);
+
+							print '<tr class="oddeven">';
+							print '<td>'.dol_escape_htmltag($modulelabel).'</td>';
+							print '<td>'.dol_escape_htmltag($module->description).'</td>';
+							print '<td class="center">';
+							if ($enabled) {
+								print '<a class="reposition" href="'.$_SERVER['PHP_SELF'].'?action=del&token='.newToken().'&value='.urlencode($name).'">';
+								print img_picto($langs->trans('Enabled'), 'switch_on');
+								print '</a>';
+							} else {
+								print '<a class="reposition" href="'.$_SERVER['PHP_SELF'].'?action=set&token='.newToken().'&value='.urlencode($name).'&scan_dir='.urlencode($module->scandir).'&label='.urlencode($modulelabel).'">';
+								print img_picto($langs->trans('Disabled'), 'switch_off');
+								print '</a>';
+							}
+							print '</td>';
+							print '<td class="center">';
+							if ($isdefault) {
+								print img_picto($langs->trans('Default'), 'on');
+							} else {
+								print '<a class="reposition" href="'.$_SERVER['PHP_SELF'].'?action=setdoc&token='.newToken().'&value='.urlencode($name).'&scan_dir='.urlencode($module->scandir).'&label='.urlencode($modulelabel).'">'.img_picto($langs->trans('SetAsDefault'), 'off').'</a>';
+							}
+							print '</td>';
+							print '<td class="center">';
+							print '<a class="reposition" href="'.$_SERVER['PHP_SELF'].'?action=specimen&token='.newToken().'&value='.urlencode($name).'">'.img_picto($langs->trans('Specimen'), 'pdf').'</a>';
+							print '</td>';
+							print '</tr>';
+						}
+					}
 				}
 			}
 		}
-
-		print '<tr class="oddeven">';
-		print '<td>'.dol_escape_htmltag($model).'</td>';
-		print '<td>'.dol_escape_htmltag($modeldesc).'</td>';
-		print '<td>'.($enabled ? $langs->trans('Enabled') : $langs->trans('Disabled')).'</td>';
-		print '<td>'.($isdefault ? $langs->trans('Yes') : $langs->trans('No')).'</td>';
-		print '<td class="center">';
-		if ($enabled) {
-			print '<a class="marginleftonly" href="'.$_SERVER['PHP_SELF'].'?action=del&token='.newToken().'&model='.$model.'">'.img_picto($langs->trans('Disable'), 'switch_off').'</a>';
-		} else {
-			print '<a class="marginleftonly" href="'.$_SERVER['PHP_SELF'].'?action=set&token='.newToken().'&model='.$model.'">'.img_picto($langs->trans('Enable'), 'switch_on').'</a>';
-		}
-		if (!$isdefault) {
-			print '<a class="marginleftonly" href="'.$_SERVER['PHP_SELF'].'?action=setdoc&token='.newToken().'&model='.$model.'">'.img_picto($langs->trans('SetDefault'), 'star').'</a>';
-		}
-		print '<a class="marginleftonly" href="'.$_SERVER['PHP_SELF'].'?action=specimen&token='.newToken().'&model='.$model.'">'.img_picto($langs->trans('Specimen'), 'pdf').'</a>';
-		print '</td>';
-		print '</tr>';
 	}
 }
+
 if (empty($foundmodel)) {
 	print '<tr class="oddeven"><td colspan="5"><span class="opacitymedium">'.$langs->trans('RGWNoDocumentModel').'</span></td></tr>';
 }
