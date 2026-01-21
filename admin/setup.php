@@ -114,7 +114,7 @@ if ($action == 'setmod') {
 
 // EN: Handle document model actions
 // FR: Gérer les actions sur les modèles de documents
-$docType = 'rgwarranty';
+$docType = 'rgw_cycle';
 if (in_array($action, array('set', 'del', 'setdoc', 'specimen'), true)) {
 	$model = GETPOST('model', 'alpha');
 	if (!empty($model)) {
