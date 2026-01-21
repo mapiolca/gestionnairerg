@@ -470,54 +470,23 @@ if ($action != 'presend') {
 	// EN: Timeline events fallback when agenda is not available
 	// FR: Historique en repli si l'agenda n'est pas disponible
 	if (empty($showactionsavailable)) {
-		print load_fiche_titre($langs->trans('RGWTimeline'));
-		print '<div class="div-table-responsive">';
-		print '<table class="noborder centpercent">';
-		print '<tr class="liste_titre">';
-		print '<th>'.$langs->trans('Date').'</th>';
-		print '<th>'.$langs->trans('Type').'</th>';
-		print '<th>'.$langs->trans('Label').'</th>';
-		print '<th>'.$langs->trans('User').'</th>';
-		print '</tr>';
+		// EN: Limit timeline to last events like core invoice card
+		// FR: Limiter l'historique aux derniers événements comme la fiche facture
+		$MAXEVENT = 10;
 
-		$sql = "SELECT a.rowid, a.datep, a.type_code, a.label, a.note, u.login";
-		$sql .= " FROM ".$db->prefix()."actioncomm as a";
-		$sql .= " LEFT JOIN ".$db->prefix()."user as u ON u.rowid = a.fk_user_author";
-		$sql .= " WHERE a.entity = ".((int) $conf->entity);
-		$sql .= " AND a.elementtype = 'rgw_cycle'";
-		$sql .= " AND a.fk_element = ".((int) $object->id);
-		$sql .= " ORDER BY a.datep DESC";
-		$sql .= $db->plimit(10);
-		$resql = $db->query($sql);
-		if ($resql) {
-			while ($obj = $db->fetch_object($resql)) {
-				// EN: Avoid invalid dates for display
-				// FR: Éviter les dates invalides à l'affichage
-				$eventDate = '';
-				$eventDateTs = $db->jdate($obj->datep);
-				if (!empty($eventDateTs)) {
-					$eventDate = dol_print_date($eventDateTs, 'dayhour');
-				}
-				// EN: Resolve action type label when helper is available
-				// FR: Résoudre le libellé du type d'action si possible
-				$eventType = $obj->type_code;
-				if (is_callable(array('ActionComm', 'getTypeFromCode'))) {
-					$eventType = ActionComm::getTypeFromCode($obj->type_code, $langs);
-				}
-				$eventLabel = $obj->label;
-				if (empty($eventLabel)) {
-					$eventLabel = $obj->note;
-				}
-				print '<tr class="oddeven">';
-				print '<td>'.$eventDate.'</td>';
-				print '<td>'.dol_escape_htmltag((string) $eventType).'</td>';
-				print '<td>'.dol_escape_htmltag((string) $eventLabel).'</td>';
-				print '<td>'.dol_escape_htmltag((string) $obj->login).'</td>';
-				print '</tr>';
-			}
+		// EN: Provide shortcuts to full conversation and list
+		// FR: Fournir des raccourcis vers la conversation et la liste complètes
+		$morehtmlcenter = '<div class="nowraponall">';
+		$morehtmlcenter .= dolGetButtonTitle($langs->trans('FullConversation'), '', 'fa fa-comments imgforviewmode', DOL_URL_ROOT.'/compta/facture/messaging.php?id='.$object->id);
+		$morehtmlcenter .= dolGetButtonTitle($langs->trans('FullList'), '', 'fa fa-bars imgforviewmode', DOL_URL_ROOT.'/compta/facture/agenda.php?id='.$object->id);
+		$morehtmlcenter .= '</div>';
+
+		// EN: Use native helper to show actions timeline
+		// FR: Utiliser le helper natif pour afficher l'historique des actions
+		$somethingshown = $formactions->showactions($object, 'rgwcycle', $object->fk_soc, 1, '', $MAXEVENT, '', $morehtmlcenter);
+		if (empty($somethingshown)) {
+			print $langs->trans('None');
 		}
-		print '</table>';
-		print '</div>';
 	}
 	print '</div>';
 	print '<div class="clearboth"></div>';
