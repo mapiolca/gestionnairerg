@@ -487,6 +487,7 @@ if ($action != 'presend') {
 		$sql .= " AND a.elementtype = 'rgw_cycle'";
 		$sql .= " AND a.fk_element = ".((int) $object->id);
 		$sql .= " ORDER BY a.datep DESC";
+		$sql .= " LIMIT 10";
 		$resql = $db->query($sql);
 		if ($resql) {
 			while ($obj = $db->fetch_object($resql)) {
