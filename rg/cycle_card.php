@@ -463,9 +463,7 @@ if ($action != 'presend') {
 		print $langs->trans('None');
 	}
 	
-	print '</div>';
-	print '<div class="clearboth"></div>';
-	print '</div>';
+	print '</div></div>';
 }
 
 // EN: Presend mail form
