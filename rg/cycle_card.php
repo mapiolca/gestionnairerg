@@ -276,7 +276,7 @@ foreach ($invoices as $invoice) {
 		$invoicestatuslabel = dol_print_invoice_status($invoicestatus, 1);
 	} else {
 		$tmpinvoice = new Facture($db);
-		$tmpinvoice->statut = $invoicestatus;
+		$tmpinvoice->fk_statut = $invoicestatus;
 		$invoicestatuslabel = $tmpinvoice->getLibStatut(1);
 	}
 	// EN: Avoid invalid dates for display
