@@ -354,7 +354,9 @@ if ($action != 'presend') {
 	print '<div class="fichehalfleft">';
 	// EN: Documents block
 	// FR: Bloc documents
-	$modulepart = 'Rgwarranty';
+	// EN: Use module identifier to match setup document models
+	// FR: Utiliser l'identifiant du module pour correspondre aux modèles de l'admin
+	$modulepart = $object->module;
 	// EN: Align output directory with generateDocument()
 	// FR: Aligner le répertoire de sortie avec generateDocument()
 	$documentref = dol_sanitizeFileName($object->ref);
