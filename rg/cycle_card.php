@@ -54,6 +54,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/invoice.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+dol_include_once('/comm/action/class/actioncomm.class.php');
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
 require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
@@ -479,26 +480,37 @@ if ($action != 'presend') {
 		print '<th>'.$langs->trans('User').'</th>';
 		print '</tr>';
 
-		$sql = "SELECT e.rowid, e.date_event, e.event_type, e.label, u.login";
-		$sql .= " FROM ".$db->prefix()."rgw_event as e";
-		$sql .= " LEFT JOIN ".$db->prefix()."user as u ON u.rowid = e.fk_user";
-		$sql .= " WHERE e.fk_cycle = ".((int) $object->id);
-		$sql .= " AND e.entity = ".((int) $conf->entity);
-		$sql .= " ORDER BY e.date_event DESC";
+		$sql = "SELECT a.rowid, a.datep, a.type_code, a.label, a.note, u.login";
+		$sql .= " FROM ".$db->prefix()."actioncomm as a";
+		$sql .= " LEFT JOIN ".$db->prefix()."user as u ON u.rowid = a.fk_user_author";
+		$sql .= " WHERE a.entity = ".((int) $conf->entity);
+		$sql .= " AND a.elementtype = 'rgw_cycle'";
+		$sql .= " AND a.fk_element = ".((int) $object->id);
+		$sql .= " ORDER BY a.datep DESC";
 		$resql = $db->query($sql);
 		if ($resql) {
 			while ($obj = $db->fetch_object($resql)) {
 				// EN: Avoid invalid dates for display
 				// FR: Éviter les dates invalides à l'affichage
 				$eventDate = '';
-				$eventDateTs = $db->jdate($obj->date_event);
+				$eventDateTs = $db->jdate($obj->datep);
 				if (!empty($eventDateTs)) {
 					$eventDate = dol_print_date($eventDateTs, 'dayhour');
 				}
+				// EN: Resolve action type label when helper is available
+				// FR: Résoudre le libellé du type d'action si possible
+				$eventType = $obj->type_code;
+				if (is_callable(array('ActionComm', 'getTypeFromCode'))) {
+					$eventType = ActionComm::getTypeFromCode($obj->type_code, $langs);
+				}
+				$eventLabel = $obj->label;
+				if (empty($eventLabel)) {
+					$eventLabel = $obj->note;
+				}
 				print '<tr class="oddeven">';
 				print '<td>'.$eventDate.'</td>';
-				print '<td>'.dol_escape_htmltag((string) $obj->event_type).'</td>';
-				print '<td>'.dol_escape_htmltag((string) $obj->label).'</td>';
+				print '<td>'.dol_escape_htmltag((string) $eventType).'</td>';
+				print '<td>'.dol_escape_htmltag((string) $eventLabel).'</td>';
 				print '<td>'.dol_escape_htmltag((string) $obj->login).'</td>';
 				print '</tr>';
 			}
