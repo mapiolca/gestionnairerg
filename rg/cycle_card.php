@@ -350,100 +350,45 @@ if ($action != 'presend') {
 	print '</div>';
 }
 
-if ($action != 'presend') {
-	print '<div class="fichecenter">';
-	print '<div class="fichehalfleft">';
-	// EN: Documents block
-	// FR: Bloc documents
-	// EN: Use module identifier to match setup document models
-	// FR: Utiliser l'identifiant du module pour correspondre aux modèles de l'admin
-	$modulepart = $object->module;
-	// EN: Align output directory with generateDocument()
-	// FR: Aligner le répertoire de sortie avec generateDocument()
-	$documentref = dol_sanitizeFileName($object->ref);
-	$filedir = $conf->rgwarranty->dir_output.'/'.$object->element.'/'.$documentref;
-	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id;
-	$genallowed = $permissiontowrite;
-	$delallowed = $permissiontowrite;
-	if (empty($object->model_pdf)) {
-		$object->model_pdf = getDolGlobalString('RGWARRANTY_PDF_MODEL', 'rgrequest');
-	}
-	$modelselected = $object->model_pdf;
-	$param = '&id='.$object->id;
+if ($action != 'prerelance' && $action != 'presend') {
+	print '<div class="fichecenter"><div class="fichehalfleft">';
+	print '<a name="builddoc"></a>'; // ancre
 
-	print load_fiche_titre($langs->trans('Documents'));
+	// Generated documents
+	$filename = dol_sanitizeFileName($object->ref);
+	$filedir = $conf->rgwaranty->multidir_output[$object->entity ?? $conf->entity].'/'.dol_sanitizeFileName($object->ref);
+	$urlsource = $_SERVER['PHP_SELF'].'?facid='.$object->id;
+	$genallowed = $usercanread;
+	$delallowed = $usercancreate;
+	$tooltipAfterComboOfModels = '';
 
-	// EN: Show document generation form if available
-	// FR: Afficher le formulaire de génération si disponible
-	if (function_exists('builddoc_form')) {
-		$builddocParams = array(
-			'modulepart' => $modulepart,
-			'param' => $param,
-			'object' => $object,
-			'permissiontoadd' => $permissiontowrite,
-			'permissiontodel' => $permissiontowrite,
-			'modelselected' => $modelselected,
-			'filedir' => $filedir,
-			'urlsource' => $urlsource,
-			'genallowed' => $genallowed,
-			'delallowed' => $delallowed,
-			'morehtmlright' => '',
-			'moreparam' => ''
-		);
+	print $formfile->showdocuments(
+		'rgw_cycle',
+		$filename,
+		$filedir,
+		$urlsource,
+		$genallowed,
+		(int) $delallowed,
+		$object->model_pdf,
+		1,
+		0,
+		0,
+		28,
+		0,
+		'',
+		'',
+		'',
+		$soc->default_lang,
+		'',
+		$object,
+		0,
+		'remove_file_comfirm',
+		$tooltipAfterComboOfModels
+	);
 
-		$builddocArgs = array();
-		$builddocReflect = new ReflectionFunction('builddoc_form');
-		foreach ($builddocReflect->getParameters() as $parameter) {
-			$paramName = $parameter->getName();
-			if (array_key_exists($paramName, $builddocParams)) {
-				$builddocArgs[] = $builddocParams[$paramName];
-			} elseif ($parameter->isDefaultValueAvailable()) {
-				$builddocArgs[] = $parameter->getDefaultValue();
-			} else {
-				$builddocArgs[] = null;
-			}
-		}
-		print call_user_func_array('builddoc_form', $builddocArgs);
-	}
-
-	// EN: Show generated documents list if available
-	// FR: Afficher la liste des documents générés si disponible
-	if (method_exists($formfile, 'showdocuments')) {
-		$showdocParams = array(
-			'modulepart' => $modulepart,
-			'filename' => $documentref,
-			'ref' => $object->ref,
-			'filedir' => $filedir,
-			'urlsource' => $urlsource,
-			'genallowed' => $genallowed,
-			'delallowed' => $delallowed,
-			'modelselected' => $modelselected,
-			'allowgenifempty' => 1,
-			'permissiontoread' => $permissiontoread,
-			'param' => $param,
-			'action' => $action
-		);
-
-		$showdocArgs = array();
-		$showdocReflect = new ReflectionMethod($formfile, 'showdocuments');
-		foreach ($showdocReflect->getParameters() as $parameter) {
-			$paramName = $parameter->getName();
-			if (array_key_exists($paramName, $showdocParams)) {
-				$showdocArgs[] = $showdocParams[$paramName];
-			} elseif ($parameter->isDefaultValueAvailable()) {
-				$showdocArgs[] = $parameter->getDefaultValue();
-			} else {
-				$showdocArgs[] = null;
-			}
-		}
-		print call_user_func_array(array($formfile, 'showdocuments'), $showdocArgs);
-	}
-	print '</div>';
+	$somethingshown = $formfile->numoffiles;
 
 	print '<div class="fichehalfright">';
-	// EN: Actions/agenda block
-	// FR: Bloc actions/agenda
-	print load_fiche_titre($langs->trans('Actions'));
 
 	// EN: Limit timeline to last events like core invoice card
 	// FR: Limiter l'historique aux derniers événements comme la fiche facture
