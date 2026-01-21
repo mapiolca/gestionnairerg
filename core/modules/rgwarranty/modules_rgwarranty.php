@@ -26,11 +26,14 @@
 dol_include_once('/core/modules/modules_pdf.php');
 dol_include_once('/core/lib/pdf.lib.php');
 
-// EN: Ensure base class exists before declaring module driver
-// FR: Vérifier la classe de base avant de déclarer le driver du module
+// EN: Provide fallback if base class is missing to avoid fatal
+// FR: Fournir un fallback si la classe de base manque pour éviter un fatal
 if (!class_exists('ModelePDF')) {
 	dol_syslog('ModelePDF class not found for rgwarranty documents driver', LOG_ERR);
-	return;
+	class ModelePDF
+	{
+		public $error = '';
+	}
 }
 
 /**
