@@ -151,7 +151,7 @@ function rgwarranty_fetch_invoices_for_cycle($db, $entity, $situationCycleRef)
 	$invoices = array();
 	// EN: Use fk_statut field name for invoices
 	// FR: Utiliser le champ fk_statut pour les factures
-	$sql = "SELECT f.rowid, f.ref, f.datef, f.total_ttc, f.fk_statut as status, f.retained_warranty, f.multicurrency_total_ttc, f.multicurrency_code, f.fk_soc, f.fk_projet";
+	$sql = "SELECT f.rowid, f.ref, f.datef, f.total_ttc, f.fk_statut, f.retained_warranty, f.multicurrency_total_ttc, f.multicurrency_code, f.fk_soc, f.fk_projet";
 	$sql .= " FROM ".$db->prefix()."facture as f";
 	$sql .= " WHERE f.entity = ".((int) $entity);
 	$sql .= " AND f.situation_cycle_ref = ".((int) $situationCycleRef);
