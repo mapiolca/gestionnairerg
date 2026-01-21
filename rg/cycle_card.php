@@ -354,7 +354,7 @@ if ($action != 'presend') {
 	print '<div class="fichehalfleft">';
 	// EN: Documents block
 	// FR: Bloc documents
-	$modulepart = 'rgw_cycle';
+	$modulepart = 'Rgwarranty';
 	// EN: Align output directory with generateDocument()
 	// FR: Aligner le répertoire de sortie avec generateDocument()
 	$documentref = dol_sanitizeFileName($object->ref);
