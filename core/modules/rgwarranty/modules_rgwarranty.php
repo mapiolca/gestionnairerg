@@ -27,16 +27,6 @@ dol_include_once('/core/modules/modules_pdf.php');
 dol_include_once('/core/lib/pdf.lib.php');
 dol_include_once('/core/lib/files.lib.php');
 
-// EN: Provide fallback if base class is missing to avoid fatal
-// FR: Fournir un fallback si la classe de base manque pour éviter un fatal
-if (!class_exists('ModelePDF')) {
-	dol_syslog('ModelePDF class not found for rgwarranty documents driver', LOG_ERR);
-	class ModelePDF
-	{
-		public $error = '';
-	}
-}
-
 /**
  * PDF model handler for RG Warranty.
  */
@@ -94,7 +84,7 @@ class ModelePDFRgw_cycle extends ModelePDF
 		// FR: Initialiser les métadonnées du modèle
 		$this->db = $db;
 		$langs->loadLangs(array('main', 'rgwarranty@rgwarranty'));
-		$this->name = 'rgwarranty';
+		$this->name = 'rgw_cycle';
 		$this->description = $langs->trans('RGWDocuments');
 		$this->type = 'pdf';
 		$this->scandir = 'rgwarranty';
