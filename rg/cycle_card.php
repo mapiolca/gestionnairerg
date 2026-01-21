@@ -176,6 +176,7 @@ if ($reshook == 0 && $action == 'builddoc' && $permissiontowrite) {
 // EN: Sync cycle lines
 // FR: Synchroniser les lignes du cycle
 $invoices = rgwarranty_fetch_invoices_for_cycle($db, $conf->entity, $object->situation_cycle_ref);
+var_dump($invoice->status);
 rgwarranty_sync_cycle_lines($db, $object, $invoices);
 $totals = rgwarranty_get_cycle_totals($db, $object->id);
 
