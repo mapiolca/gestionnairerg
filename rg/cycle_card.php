@@ -158,6 +158,21 @@ if ($reshook == 0 && in_array($action, array('request', 'reminder')) && $permiss
 	}
 }
 
+// EN: Generate document from selected model
+// FR: Générer le document depuis le modèle sélectionné
+if ($reshook == 0 && $action == 'builddoc' && $permissiontowrite) {
+	$model = GETPOST('model', 'alpha');
+	if (empty($model)) {
+		$model = getDolGlobalString('RGWARRANTY_PDF_MODEL', 'rgrequest');
+	}
+	$object->model_pdf = $model;
+	$result = $object->generateDocument($model, $langs, 0, 0, 0);
+	if ($result <= 0) {
+		setEventMessages($object->error, $object->errors, 'errors');
+	}
+	$action = '';
+}
+
 // EN: Sync cycle lines
 // FR: Synchroniser les lignes du cycle
 $invoices = rgwarranty_fetch_invoices_for_cycle($db, $conf->entity, $object->situation_cycle_ref);
@@ -254,11 +269,14 @@ foreach ($invoices as $invoice) {
 	// EN: Build invoice status label with fallback when helper function is missing
 	// FR: Construire le libellé de statut avec repli si la fonction helper manque
 	$invoicestatuslabel = '';
+	// EN: Use fk_statut value from invoice object for correct status
+	// FR: Utiliser la valeur fk_statut de la facture pour le bon statut
+	$invoicestatus = isset($invoice->statut) ? $invoice->statut : $invoice->status;
 	if (function_exists('dol_print_invoice_status')) {
-		$invoicestatuslabel = dol_print_invoice_status($invoice->status, 1);
+		$invoicestatuslabel = dol_print_invoice_status($invoicestatus, 1);
 	} else {
 		$tmpinvoice = new Facture($db);
-		$tmpinvoice->statut = $invoice->status;
+		$tmpinvoice->statut = $invoicestatus;
 		$invoicestatuslabel = $tmpinvoice->getLibStatut(1);
 	}
 	// EN: Avoid invalid dates for display
@@ -344,7 +362,10 @@ if ($action != 'presend') {
 	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id;
 	$genallowed = $permissiontowrite;
 	$delallowed = $permissiontowrite;
-	$modelselected = !empty($object->model_pdf) ? $object->model_pdf : getDolGlobalString('RGWARRANTY_PDF_MODEL', 'rgrequest');
+	if (empty($object->model_pdf)) {
+		$object->model_pdf = getDolGlobalString('RGWARRANTY_PDF_MODEL', 'rgrequest');
+	}
+	$modelselected = $object->model_pdf;
 	$param = '&id='.$object->id;
 
 	print load_fiche_titre($langs->trans('Documents'));
