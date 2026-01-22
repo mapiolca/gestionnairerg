@@ -111,7 +111,7 @@ class pdf_rgrequest extends ModelePDFRgwarranty
 		// EN: Load translations for PDF
 		// FR: Charger les traductions pour le PDF
 		$outputlangs->loadLangs(array('main', 'companies', 'projects', 'bills', 'rgwarranty@rgwarranty'));
-		
+
 		$entity = (!empty($object->entity) ? (int) $object->entity : (int) $conf->entity);
 
 		$baseoutputdir = '';
@@ -223,7 +223,7 @@ class pdf_rgrequest extends ModelePDFRgwarranty
 		$pdf->MultiCell(0, 5, $outputlangs->transnoentities('RGWRequestLetterClosing'), 0, 'L');
 
 		$pdf->Output($file, 'F');
-		dolChmod($file).
+		dolChmod($file);
 
 		return 1;
 	}
