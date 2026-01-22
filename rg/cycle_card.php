@@ -242,9 +242,9 @@ $morehtmlref .= $langs->trans('ThirdParty').' : '.$thirdpartyLabel.'<br>';
 $morehtmlref .= $langs->trans('Project').' : '.$projectLabel;
 $morehtmlref .= '</div>';
 
-
 $linkback = '<a href="'.dol_buildpath('/rgwarranty/rg/index.php', 1).'">'.$langs->trans('BackToList').'</a>';
-dol_banner_tab($object, 'ref', $linkback, 1, 'ref', 'ref', $morehtmlref);
+
+dol_banner_tab($object, 'ref', $linkback, 1, 'ref', 'ref', $morehtmlref, '', 0, '', '');
 print '<div class="underbanner clearboth"></div>';
 
 $showactionsavailable = false;
