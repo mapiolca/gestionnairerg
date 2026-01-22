@@ -111,9 +111,18 @@ class pdf_rgrequest extends ModelePDFRgwarranty
 		// EN: Load translations for PDF
 		// FR: Charger les traductions pour le PDF
 		$outputlangs->loadLangs(array('main', 'companies', 'projects', 'bills', 'rgwarranty@rgwarranty'));
+		
+		$entity = (!empty($object->entity) ? (int) $object->entity : (int) $conf->entity);
+
+		$baseoutputdir = '';
+		if (!empty($conf->rgwarranty->multidir_output[$entity])) {
+			$baseoutputdir = $conf->rgwarranty->multidir_output[$entity];
+		} elseif (!empty($conf->rgwarranty->dir_output)) {
+			$baseoutputdir = $conf->rgwarranty->dir_output;
+		}
 
 		$ref = dol_sanitizeFileName($object->ref);
-		$dir = $conf->rgwarranty->multidir_output[$entity].'/'.$object->element.'/'.$ref ;//$conf->rgwarranty->dir_output.'/'.$object->element.'/'.$ref;
+		$dir = $baseoutputdir.'/'.$object->element.'/'.$ref;
 		$file = $dir.'/'.$ref.'.pdf';
 
 		if (!dol_mkdir($dir)) {
@@ -214,6 +223,7 @@ class pdf_rgrequest extends ModelePDFRgwarranty
 		$pdf->MultiCell(0, 5, $outputlangs->transnoentities('RGWRequestLetterClosing'), 0, 'L');
 
 		$pdf->Output($file, 'F');
+		dolChmod($file).
 
 		return 1;
 	}
