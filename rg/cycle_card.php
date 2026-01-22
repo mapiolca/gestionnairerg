@@ -240,9 +240,6 @@ if (!empty($files[0]['name'])) {
 $morehtmlref = '<div class="refidno">';
 $morehtmlref .= $langs->trans('ThirdParty').' : '.$thirdpartyLabel.'<br>';
 $morehtmlref .= $langs->trans('Project').' : '.$projectLabel;
-if (!empty($lastdochtml)) {
-	$morehtmlref .= '<br>'.$lastdochtml;
-}
 $morehtmlref .= '</div>';
 
 
