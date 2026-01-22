@@ -108,7 +108,7 @@ $hookmanager->initHooks(array('rgwarrantycyclecard', 'globalcard'));
 
 // EN: Load document driver for module
 // FR: Charger le driver documents du module
-dol_include_once(dol_buildpath('/rgwarranty/core/modules/rgwarranty/modules_rgwarranty.php', 0));
+//dol_include_once(dol_buildpath('/rgwarranty/core/modules/rgwarranty/modules_rgwarranty.php', 0));
 
 $error = 0;
 
