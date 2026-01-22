@@ -31,7 +31,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/commondocgenerator.class.php';
 /**
  * PDF model handler for RG Warranty.
  */
-class ModelePDFRgw_cycle extends CommonDocGenerator
+class ModelePDFRgwarranty extends CommonDocGenerator
 {
 	/**
 	 * @var DoliDB Database handler
