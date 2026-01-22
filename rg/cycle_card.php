@@ -218,8 +218,8 @@ if (!empty($object->fk_projet) && isModEnabled('project')) {
 print '<div class="fichecenter">';
 print '<div class="fichehalfleft">';
 print '<table class="border centpercent tableforfield">';
-print '<tr><td class="titlefield">'.$langs->trans('RGWCycleRef').'</td><td>'.dol_escape_htmltag($object->ref).'</td></tr>';
-print '<tr><td class="titlefield">'.$langs->trans('RGWSituationCycleRef').'</td><td>'.dol_escape_htmltag($object->situation_cycle_ref).'</td></tr>';
+//print '<tr><td class="titlefield">'.$langs->trans('RGWCycleRef').'</td><td>'.dol_escape_htmltag($object->ref).'</td></tr>';
+//print '<tr><td class="titlefield">'.$langs->trans('RGWSituationCycleRef').'</td><td>'.dol_escape_htmltag($object->situation_cycle_ref).'</td></tr>';
 print '<tr><td class="titlefield">'.$langs->trans('ThirdParty').'</td><td>'.$thirdpartyLabel.'</td></tr>';
 print '<tr><td class="titlefield">'.$langs->trans('Project').'</td><td>'.$projectLabel.'</td></tr>';
 print '<tr><td class="titlefield">'.$langs->trans('RGWReceptionDate').'</td><td>'.dol_print_date($object->date_reception, 'day').'</td></tr>';
@@ -365,6 +365,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 
 	// Generated documents
 	$filename = dol_sanitizeFileName($object->ref);
+	var_dump($object->element);
 	$filedir = $conf->rgwarranty->multidir_output[$entity].'/'.$object->element.'/'.$object->ref;
 	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id;
 	$genallowed = $usercanread;
