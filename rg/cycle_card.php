@@ -192,8 +192,62 @@ llxHeader('', $langs->trans('RGWCycle'));
 $head = rgwarranty_cycle_prepare_head($object);
 print dol_get_fiche_head($head, 'card', $langs->trans('RGWCycle'), -1, 'invoicing');
 
+// EN: Entity scope (multicompany)
+// FR: Périmètre entity (multicompany)
+$entity = (!empty($object->entity) ? (int) $object->entity : (int) $conf->entity);
+
+// EN: Prepare Thirdparty / Project labels for banner
+// FR: Préparer les libellés Tiers / Projet pour la bannière
+$thirdpartyLabel = '<span class="opacitymedium">'.$langs->trans('None').'</span>';
+$soc = new Societe($db);
+if (!empty($object->fk_soc)) {
+	$thirdparty = new Societe($db);
+	$thirdparty->fetch($object->fk_soc);
+	$thirdpartyLabel = $thirdparty->getNomUrl(1);
+	$soc = $thirdparty;
+}
+
+$projectLabel = '<span class="opacitymedium">'.$langs->trans('None').'</span>';
+if (!empty($object->fk_projet) && isModEnabled('project')) {
+	$project = new Project($db);
+	$project->fetch($object->fk_projet);
+	$projectLabel = $project->getNomUrl(1);
+}
+
+// EN: Find last generated file (icon or thumbnail)
+// FR: Trouver le dernier fichier généré (icône ou miniature)
+$ref = dol_sanitizeFileName($object->ref);
+$relativepath = $object->element.'/'.$ref; // ex: rgw_cycle/RGW-3
+$cycleFileDir = $conf->rgwarranty->multidir_output[$entity].'/'.$relativepath;
+
+$lastdochtml = '';
+$files = dol_dir_list($cycleFileDir, 'files', 0, '', '\.meta$', 'date', SORT_DESC);
+if (!empty($files[0]['name'])) {
+	$lastfilename = $files[0]['name'];
+	$urldoc = DOL_URL_ROOT.'/document.php?modulepart=rgwarranty&file='.urlencode($relativepath.'/'.$lastfilename).'&entity='.$entity;
+
+	if (preg_match('/\.(png|jpe?g|gif|webp)$/i', $lastfilename)) {
+		$thumb = '<img class="photo photoinline" style="max-height:40px; max-width:40px;" src="'.DOL_URL_ROOT.'/viewimage.php?modulepart=rgwarranty&file='.urlencode($relativepath.'/'.$lastfilename).'&entity='.$entity.'" alt="'.dol_escape_htmltag($lastfilename).'">';
+		$lastdochtml = '<a class="valignmiddle" href="'.$urldoc.'">'.$thumb.'</a>';
+	} else {
+		$lastdochtml = '<a class="valignmiddle" href="'.$urldoc.'">'.img_mime($lastfilename, $langs->trans('Show')).'</a>';
+	}
+	$lastdochtml .= ' <a class="opacitymedium" href="'.$urldoc.'">'.dol_trunc($lastfilename, 32).'</a>';
+}
+
+// EN: morehtmlref like core cards
+// FR: morehtmlref comme les fiches core
+$morehtmlref = '<div class="refidno">';
+$morehtmlref .= $langs->trans('ThirdParty').' : '.$thirdpartyLabel.'<br>';
+$morehtmlref .= $langs->trans('Project').' : '.$projectLabel;
+if (!empty($lastdochtml)) {
+	$morehtmlref .= '<br>'.$lastdochtml;
+}
+$morehtmlref .= '</div>';
+
+
 $linkback = '<a href="'.dol_buildpath('/rgwarranty/rg/index.php', 1).'">'.$langs->trans('BackToList').'</a>';
-dol_banner_tab($object, 'ref', $linkback, 1, 'ref');
+dol_banner_tab($object, 'ref', $linkback, 1, 'ref', 'ref', $morehtmlref);
 print '<div class="underbanner clearboth"></div>';
 
 $showactionsavailable = false;
@@ -220,8 +274,8 @@ print '<div class="fichehalfleft">';
 print '<table class="border centpercent tableforfield">';
 //print '<tr><td class="titlefield">'.$langs->trans('RGWCycleRef').'</td><td>'.dol_escape_htmltag($object->ref).'</td></tr>';
 //print '<tr><td class="titlefield">'.$langs->trans('RGWSituationCycleRef').'</td><td>'.dol_escape_htmltag($object->situation_cycle_ref).'</td></tr>';
-print '<tr><td class="titlefield">'.$langs->trans('ThirdParty').'</td><td>'.$thirdpartyLabel.'</td></tr>';
-print '<tr><td class="titlefield">'.$langs->trans('Project').'</td><td>'.$projectLabel.'</td></tr>';
+//print '<tr><td class="titlefield">'.$langs->trans('ThirdParty').'</td><td>'.$thirdpartyLabel.'</td></tr>';
+//print '<tr><td class="titlefield">'.$langs->trans('Project').'</td><td>'.$projectLabel.'</td></tr>';
 print '<tr><td class="titlefield">'.$langs->trans('RGWReceptionDate').'</td><td>'.dol_print_date($object->date_reception, 'day').'</td></tr>';
 print '<tr><td class="titlefield">'.$langs->trans('RGWLimitDate').'</td><td>'.dol_print_date($object->date_limit, 'day').'</td></tr>';
 print '</table>';
@@ -370,7 +424,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 	$relativepath = $object->element.'/'.$ref;	// ex: rgw_cycle/RGW-3
 	$filename = $relativepath;
 	$filedir = $conf->rgwarranty->multidir_output[$entity].'/'.$relativepath;
-	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id.($entity != $conf->entity ? '&entity='.$entity : '');
+	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id.'&entity='.$entity;
 	$moreparams = 'id='.$object->id.'&entity='.$entity;
 	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id;
 	$genallowed = $usercanread;
