@@ -109,7 +109,7 @@ $formcompany = new FormCompany($db);
 $formproject = new FormProjets($db);
 
 $title = $langs->trans('RGWCockpit');
-llxHeader('', $title, '', '', 0, 0, '', '', '', 'mod-lmdbcrm page-commercial-ranking');
+llxHeader('', $title, $help_url, '', 0, 0, '', '', '', 'bodyforlist'.($contextpage == 'poslist' ? ' '.$contextpage : ''));
 print load_fiche_titre($title, '', 'invoicing');
 
 $sortfields = array(
