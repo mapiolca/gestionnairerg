@@ -110,7 +110,6 @@ $formproject = new FormProjets($db);
 
 $title = $langs->trans('RGWCockpit');
 llxHeader('', $title, $help_url, '', 0, 0, '', '', '', 'bodyforlist'.($contextpage == 'poslist' ? ' '.$contextpage : ''));
-print load_fiche_titre($title, '', 'invoicing');
 
 $sortfields = array(
 	'ref' => 'c.ref',
@@ -219,7 +218,10 @@ if ($resql) {
 	$num = $db->num_rows($resql);
 }
 
-print_barre_liste($langs->trans('RGWCockpit'), $page, $_SERVER['PHP_SELF'], $param, $sortfield, $sortorder, '', $num, $nbtotalofrecords, 'title_generic');
+print_barre_liste($langs->trans('RGWCockpit'), $page, $_SERVER['PHP_SELF'], $param, $sortfield, $sortorder, 'invoicing', $num, $nbtotalofrecords, 'title_generic');
+print_barre_liste($title, $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, 'bill', 0, $newcardbutton, '', $limit, 0, 0, 1);
+//print load_fiche_titre($title, '', 'invoicing');
+
 
 print '<form method="GET" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="sortfield" value="'.dol_escape_htmltag($sortfield).'">';
