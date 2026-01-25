@@ -108,8 +108,9 @@ $form = new Form($db);
 $formcompany = new FormCompany($db);
 $formproject = new FormProjets($db);
 
-//llxHeader('', $langs->trans('RGWCockpit'));
-print load_fiche_titre($langs->trans('RGWCockpit'), '', 'invoicing');
+$title = $langs->trans('RGWCockpit');
+llxHeader('', $title, '', '', 0, 0, '', '', '', 'mod-lmdbcrm page-commercial-ranking');
+print load_fiche_titre($title, '', 'invoicing');
 
 $sortfields = array(
 	'ref' => 'c.ref',
