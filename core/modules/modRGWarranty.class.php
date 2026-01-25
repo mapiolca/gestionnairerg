@@ -121,6 +121,7 @@ if (!class_exists('modRGWarranty')) {
 
 		$this->menu = array();
 		$r = 0;
+		/*
 		$this->menu[$r++] = array(
 			'fk_menu' => '',
 			'type' => 'top',
@@ -136,8 +137,9 @@ if (!class_exists('modRGWarranty')) {
 			'target' => '',
 			'user' => 2,
 		);
+		*/
 		$this->menu[$r++] = array(
-			'fk_menu' => 'fk_mainmenu=btp',
+			'fk_menu' => 'fk_mainmenu=billing',
 			'type' => 'left',
 			'titre' => 'RGWMenuRetention',
 			'prefix' => img_picto('', $this->picto, 'class="paddingright pictofixedwidth valignmiddle"'),
