@@ -447,7 +447,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 		'',
 		$object,
 		0,
-		'remove_file_comfirm',
+		'remove_file_confirm',
 		$tooltipAfterComboOfModels
 	);
 
@@ -462,8 +462,8 @@ if ($action != 'prerelance' && $action != 'presend') {
 	// EN: Provide shortcuts to full conversation and list
 	// FR: Fournir des raccourcis vers la conversation et la liste complètes
 	$morehtmlcenter = '<div class="nowraponall">';
-	$morehtmlcenter .= dolGetButtonTitle($langs->trans('FullConversation'), '', 'fa fa-comments imgforviewmode', DOL_URL_ROOT.'/compta/facture/messaging.php?id='.$object->id);
-	$morehtmlcenter .= dolGetButtonTitle($langs->trans('FullList'), '', 'fa fa-bars imgforviewmode', DOL_URL_ROOT.'/compta/facture/agenda.php?id='.$object->id);
+	//$morehtmlcenter .= dolGetButtonTitle($langs->trans('FullConversation'), '', 'fa fa-comments imgforviewmode', DOL_URL_ROOT.'/compta/facture/messaging.php?id='.$object->id);
+	//$morehtmlcenter .= dolGetButtonTitle($langs->trans('FullList'), '', 'fa fa-bars imgforviewmode', DOL_URL_ROOT.'/compta/facture/agenda.php?id='.$object->id);
 	$morehtmlcenter .= '</div>';
 
 	// EN: Use native helper to show actions timeline
