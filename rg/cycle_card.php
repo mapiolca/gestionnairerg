@@ -181,6 +181,40 @@ if ($reshook == 0) {
 	include DOL_DOCUMENT_ROOT.'/core/actions_linkedfiles.inc.php';
 }
 
+// Confirm modals
+	if ($action === 'deletefile') {
+		// EN: Ask for confirmation before delegating the deletion to Dolibarr core.
+		// FR: Demande une confirmation avant de déléguer la suppression au cœur de Dolibarr.
+		$urlfileForConfirm = GETPOST('urlfile', 'alphanohtml', 0, null, null, 1);
+		// EN: Keep track of the file parameter required by the document workflow.
+		// FR: Conserve le paramètre file requis par le workflow documentaire.
+		$confirmFileParam = GETPOST('file', 'alphanohtml', 0, null, null, 1);
+		$linkIdForConfirm = GETPOSTINT('linkid');
+		$confirmUrl = $_SERVER["PHP_SELF"].'?id='.$object->id;
+		if ($urlfileForConfirm !== '') {
+			$confirmUrl .= '&urlfile='.urlencode($urlfileForConfirm);
+		}
+		if ($confirmFileParam === '' && !empty($object->ref)) {
+			$confirmFileParam = dol_sanitizeFileName($object->ref).'.pdf';
+		}
+		if ($confirmFileParam !== '') {
+			$confirmUrl .= '&file='.urlencode($confirmFileParam);
+		}
+		if ($linkIdForConfirm > 0) {
+			$confirmUrl .= '&linkid='.$linkIdForConfirm;
+		}
+		$formconfirm = $form->formconfirm(
+			$confirmUrl,
+			$langs->trans('DeleteFile'),
+			$langs->trans('ConfirmDeleteFile'),
+			'confirm_deletefile',
+			array(),
+			'yes',
+			1
+		);
+		print $formconfirm;
+	}
+
 // EN: Sync cycle lines
 // FR: Synchroniser les lignes du cycle
 $invoices = rgwarranty_fetch_invoices_for_cycle($db, $conf->entity, $object->situation_cycle_ref);
@@ -430,7 +464,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 		'',
 		$object,
 		0,
-		'remove_file',
+		'deletefile',
 		$tooltipAfterComboOfModels
 	);
 
