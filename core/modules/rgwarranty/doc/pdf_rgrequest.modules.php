@@ -144,6 +144,9 @@ class pdf_rgrequest extends ModelePDFRgwarranty
 		$pdf->MultiCell(0, 3, ''); // Set interline to 3
 		$pdf->SetTextColor(0, 0, 0);
 
+		$tab_top = 90 + $top_shift;
+		$tab_top_newpage = (!getDolGlobalInt('MAIN_PDF_DONOTREPEAT_HEAD') ? 42 + $top_shift : 10);
+
 		// EN: Company header
 		// FR: En-tête société
 		$pdf->SetFont(pdf_getPDFFont($outputlangs), '', 10);
