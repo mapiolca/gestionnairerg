@@ -139,6 +139,11 @@ class pdf_rgrequest extends ModelePDFRgwarranty
 		$pdf->SetAutoPageBreak(true, $this->marge_bottom);
 		$pdf->AddPage();
 
+		$top_shift = $this->_pagehead($pdf, $object, 1, $outputlangs, $outputlangsbis);
+		$pdf->SetFont('', '', $default_font_size - 1);
+		$pdf->MultiCell(0, 3, ''); // Set interline to 3
+		$pdf->SetTextColor(0, 0, 0);
+
 		// EN: Company header
 		// FR: En-tête société
 		$pdf->SetFont(pdf_getPDFFont($outputlangs), '', 10);
@@ -562,5 +567,5 @@ class pdf_rgrequest extends ModelePDFRgwarranty
 	}
 
 
-	
+
 }
