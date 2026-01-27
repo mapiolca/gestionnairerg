@@ -89,11 +89,14 @@ if ($page < 0) {
 }
 $offset = $limit * $page;
 
-if (GETPOST('button_search', 'alpha') || GETPOST('button_removefilter', 'alpha')) {
+$button_search = (GETPOSTISSET('button_search') || GETPOSTISSET('button_search_x') || GETPOSTISSET('button_search_y'));
+$button_removefilter = (GETPOSTISSET('button_removefilter') || GETPOSTISSET('button_removefilter_x') || GETPOSTISSET('button_removefilter_y'));
+
+if ($button_search || $button_removefilter) {
 	$page = 0;
 }
 
-if (GETPOST('button_removefilter', 'alpha')) {
+if ($button_removefilter) {
 	$search_ref = '';
 	$search_socid = 0;
 	$search_project = 0;
