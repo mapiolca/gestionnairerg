@@ -261,6 +261,7 @@ print '<td class="liste_titre_filter"></td>';
 print '<td class="liste_titre_filter">';
 print $form->selectarray('search_status', array('' => '', 0 => $langs->trans('RGWStatusDraft'), 1 => $langs->trans('RGWStatusInProgress'), 2 => $langs->trans('RGWStatusToRequest'), 3 => $langs->trans('RGWStatusRequested'), 4 => $langs->trans('RGWStatusPartial'), 5 => $langs->trans('RGWStatusRefunded')), $search_status, 1, 0, 0, '', 0, 0, 0, '', 'flat');
 print '</td>';
+print '<td class="liste_titre_filter"></td>';
 print '</tr>';
 
 if ($resql) {
