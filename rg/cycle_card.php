@@ -488,4 +488,90 @@ if ($action != 'presend') {
 }
 
 if ($action != 'prerelance' && $action != 'presend') {
-	pr
+	print '<div class="fichecenter"><div class="fichehalfleft">';
+	print '<a name="builddoc"></a>'; // ancre
+
+// Generated documents
+	$docEntityId = (!empty($object->entity) ? (int) $object->entity : (int) $conf->entity);
+
+	// EN: Determine base output directory for module (multicompany aware)
+	// FR: Déterminer le répertoire de sortie du module (compatible multicompany)
+	$baseOutput = '';
+	if (!empty($conf->rgwarranty->multidir_output[$docEntityId])) {
+		$baseOutput = $conf->rgwarranty->multidir_output[$docEntityId];
+	} elseif (!empty($conf->rgwarranty->dir_output)) {
+		$baseOutput = $conf->rgwarranty->dir_output;
+	} else {
+		$baseOutput = DOL_DATA_ROOT.'/rgwarranty';
+	}
+
+	$docElement = (!empty($object->element) ? $object->element : 'rgw_cycle');
+	$docRef = dol_sanitizeFileName($object->ref);
+	$relativepath = $docElement.'/'.$docRef;	// ex: rgw_cycle/RGW-3
+	$filename = $relativepath;
+	$filedir = rtrim($baseOutput, '/').'/'.$relativepath;
+	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id.'&entity='.$docEntityId;
+
+	$genallowed = ($permissiontowrite ? 1 : 0);
+	$delallowed = ($permissiontowrite ? 1 : 0);
+	$tooltipAfterComboOfModels = '';
+
+	print $formfile->showdocuments(
+		'rgwarranty:RGWarranty',
+		$filename,
+		$filedir,
+		$urlsource,
+		$genallowed,
+		$delallowed,
+		$object->model_pdf,
+		1,
+		0,
+		0,
+		28,
+		0,
+		'',
+		'',
+		'',
+		$soc->default_lang,
+		'',
+		$object,
+		0,
+		'remove_file',
+		$tooltipAfterComboOfModels
+	);
+
+	$somethingshown = $formfile->numoffiles;
+	print '</div>';
+	print '<div class="fichehalfright">';
+
+	// EN: Limit timeline to last events like core invoice card
+	// FR: Limiter l'historique aux derniers événements comme la fiche facture
+	$MAXEVENT = 10;
+
+	// EN: Provide shortcuts to full conversation and list
+	// FR: Fournir des raccourcis vers la conversation et la liste complètes
+	$morehtmlcenter = '<div class="nowraponall">';
+	$morehtmlcenter .= '</div>';
+
+	// EN: Use native helper to show actions timeline
+	// FR: Utiliser le helper natif pour afficher l'historique des actions
+	$somethingshown = $formactions->showactions($object, 'rgw_cycle', '', 1, '', $MAXEVENT, '', $morehtmlcenter);
+
+	print '</div></div>';
+}
+
+// EN: Presend mail form
+// FR: Formulaire d'envoi email
+if ($action == 'presend') {
+	$modelmail = getDolGlobalString('RGWARRANTY_EMAILTPL_REQUEST', 'rgwarranty_request');
+	if ($mailcontext == 'reminder') {
+		$modelmail = getDolGlobalString('RGWARRANTY_EMAILTPL_REMINDER', 'rgwarranty_reminder');
+	}
+	$defaulttopic = 'RGWRequestLetterTitle';
+	$diroutput = $conf->rgwarranty->dir_output.'/'.$object->element;
+	$trackid = 'rgwarranty'.$object->id;
+	include DOL_DOCUMENT_ROOT.'/core/tpl/card_presend.tpl.php';
+}
+
+llxFooter();
+$db->close();
