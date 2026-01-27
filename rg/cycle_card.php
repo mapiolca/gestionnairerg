@@ -82,7 +82,7 @@ if (!$permissiontoread) {
 
 // EN: Prevent actions without rights
 // FR: Bloquer les actions sans droits
-$actionswithwrite = array('reception', 'reception_save', 'request', 'reminder', 'presend');
+$actionswithwrite = array('reception', 'reception_save', 'request', 'reminder', 'presend', 'builddoc', 'remove_file', 'deletefile', 'confirm_deletefile', 'addfile', 'send');
 if (in_array($action, $actionswithwrite, true) && !$permissiontowrite) {
 	accessforbidden();
 }
@@ -105,10 +105,6 @@ $formactions = new FormActions($db);
 // FR: Initialiser les hooks pour la fiche cycle
 $hookmanager = new HookManager($db);
 $hookmanager->initHooks(array('rgwarrantycyclecard', 'globalcard'));
-
-// EN: Load document driver for module
-// FR: Charger le driver documents du module
-//dol_include_once(dol_buildpath('/rgwarranty/core/modules/rgwarranty/modules_rgwarranty.php', 0));
 
 $error = 0;
 
@@ -164,21 +160,102 @@ if ($reshook == 0 && in_array($action, array('request', 'reminder')) && $permiss
 	}
 }
 
-// EN: Generate document from selected model
-// FR: Générer le document depuis le modèle sélectionné
-if ($reshook == 0 && $action == 'builddoc' && $permissiontowrite) {
-	$model = GETPOST('model', 'alpha');
-	if (empty($model)) {
-		$model = getDolGlobalString('RGWARRANTY_PDF_MODEL', 'rgrequest');
+// EN: Documents (PDF generation/deletion) - reuse Dolibarr core actions for stability
+// FR: Documents (génération/suppression PDF) - réutiliser les actions core Dolibarr pour fiabiliser
+$docEntityId = (!empty($object->entity) ? (int) $object->entity : (int) $conf->entity);
+
+// EN: Determine base output directory for module (multicompany aware)
+// FR: Déterminer le répertoire de sortie du module (compatible multicompany)
+$baseOutput = '';
+if (!empty($conf->rgwarranty->multidir_output[$docEntityId])) {
+	$baseOutput = $conf->rgwarranty->multidir_output[$docEntityId];
+} elseif (!empty($conf->rgwarranty->dir_output)) {
+	$baseOutput = $conf->rgwarranty->dir_output;
+} else {
+	$baseOutput = DOL_DATA_ROOT.'/rgwarranty';
+}
+
+// EN: Build relative path for object documents. Fallback to known object type when element is empty.
+// FR: Construire le chemin relatif des documents. Repli sur le type objet connu si element est vide.
+$docElement = (!empty($object->element) ? $object->element : 'rgw_cycle');
+$docRef = dol_sanitizeFileName($object->ref);
+$relativepath = $docElement.'/'.$docRef;
+$upload_dir = rtrim($baseOutput, '/').'/'.$relativepath;
+
+// EN: Map doc permissions (create/delete)
+// FR: Mapper les permissions doc (création/suppression)
+$permissiontoadd = ($permissiontowrite ? 1 : 0);
+
+// EN: Persist chosen PDF model when user is allowed to change it
+// FR: Enregistrer le modèle PDF choisi quand l'utilisateur a le droit de le changer
+if (!empty($permissiontoadd) && GETPOST('model', 'alpha')) {
+	$selectedModel = GETPOST('model', 'alpha');
+	if (method_exists($object, 'setDocModel')) {
+		$object->setDocModel($user, $selectedModel);
 	}
-	$object->model_pdf = $model;
-	$result = $object->generateDocument($model, $langs, 0, 0, 0);
-	if ($result <= 0) {
-		if (!empty($object->error) || (!empty($object->errors) && is_array($object->errors))) {
-			setEventMessages($object->error, $object->errors, 'errors');
+	$object->model_pdf = $selectedModel;
+}
+
+if (empty($object->model_pdf)) {
+	$object->model_pdf = getDolGlobalString('RGWARRANTY_PDF_MODEL', 'rgrequest');
+}
+
+// EN: Parameters preserved in document actions
+// FR: Paramètres conservés dans les actions documents
+$moreparams = array(
+	'id' => $object->id,
+	'entity' => $docEntityId,
+);
+
+// EN: Core handler for builddoc (PDF generation/regeneration)
+// FR: Handler core pour builddoc (génération/régénération PDF)
+include DOL_DOCUMENT_ROOT.'/core/actions_builddoc.inc.php';
+
+// EN: Translate remove_file to deletefile to reuse core linkedfiles workflow
+// FR: Transformer remove_file en deletefile pour réutiliser le flux core des fichiers liés
+if ($action === 'remove_file') {
+	if (empty($permissiontoadd)) {
+		setEventMessages($langs->trans('NotEnoughPermissions'), null, 'errors');
+		$action = '';
+	} else {
+		$requestedFile = GETPOST('file', 'alphanohtml', 0, null, null, 1);
+		$requestedFile = dol_sanitizeFileName(basename((string) $requestedFile));
+		if ($requestedFile !== '') {
+			$_GET['file'] = $requestedFile;
+			$_REQUEST['file'] = $requestedFile;
+			$_GET['urlfile'] = $requestedFile;
+			$_REQUEST['urlfile'] = $requestedFile;
+			$action = 'deletefile';
+		} else {
+			setEventMessages($langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('File')), null, 'errors');
+			$action = '';
 		}
 	}
-	$action = '';
+}
+
+// EN: Core handler for attachment upload/deletion within upload_dir
+// FR: Handler core pour ajout/suppression de fichiers dans upload_dir
+if (!empty($upload_dir)) {
+	$modulepart = 'rgwarranty';
+	$permissiontoread_doc = ($permissiontoread ? 1 : 0);
+	$permissiontoadd_doc = ($permissiontoadd ? 1 : 0);
+	$permissiontodownload = $permissiontoread_doc;
+	$permissiontodelete = $permissiontoadd_doc;
+
+	// EN: Dolibarr core expects these variable names
+	// FR: Le core Dolibarr attend ces noms de variables
+	$permissiontoread_tmp = $permissiontoread;
+	$permissiontoadd_tmp = $permissiontoadd;
+
+	$permissiontoread = $permissiontoread_doc;
+	$permissiontoadd = $permissiontoadd_doc;
+
+	include DOL_DOCUMENT_ROOT.'/core/actions_linkedfiles.inc.php';
+
+	// EN: Restore original variables used by the page
+	// FR: Restaurer les variables originales utilisées par la page
+	$permissiontoread = $permissiontoread_tmp;
+	$permissiontoadd = $permissiontoadd_tmp;
 }
 
 // EN: Sync cycle lines
@@ -191,6 +268,7 @@ llxHeader('', $langs->trans('RGWCycle'));
 
 $head = rgwarranty_cycle_prepare_head($object);
 print dol_get_fiche_head($head, 'card', $langs->trans('RGWCycle'), -1, 'invoicing');
+
 // EN: Entity scope (multicompany)
 // FR: Périmètre entity (multicompany)
 $entity = (!empty($object->entity) ? (int) $object->entity : (int) $conf->entity);
@@ -215,9 +293,19 @@ if (!empty($object->fk_projet) && isModEnabled('project')) {
 
 // EN: Find last generated file (icon or thumbnail)
 // FR: Trouver le dernier fichier généré (icône ou miniature)
+$baseOutput = '';
+if (!empty($conf->rgwarranty->multidir_output[$entity])) {
+	$baseOutput = $conf->rgwarranty->multidir_output[$entity];
+} elseif (!empty($conf->rgwarranty->dir_output)) {
+	$baseOutput = $conf->rgwarranty->dir_output;
+} else {
+	$baseOutput = DOL_DATA_ROOT.'/rgwarranty';
+}
+
+$docElement = (!empty($object->element) ? $object->element : 'rgw_cycle');
 $ref = dol_sanitizeFileName($object->ref);
-$relativepath = $object->element.'/'.$ref; // ex: rgw_cycle/RGW-3
-$cycleFileDir = $conf->rgwarranty->multidir_output[$entity].'/'.$relativepath;
+$relativepath = $docElement.'/'.$ref; // ex: rgw_cycle/RGW-3
+$cycleFileDir = rtrim($baseOutput, '/').'/'.$relativepath;
 
 $lastdochtml = '';
 $files = dol_dir_list($cycleFileDir, 'files', 0, '', '\.meta$', 'date', SORT_DESC);
@@ -269,10 +357,6 @@ if (!empty($object->fk_projet) && isModEnabled('project')) {
 print '<div class="fichecenter">';
 print '<div class="fichehalfleft">';
 print '<table class="border centpercent tableforfield">';
-//print '<tr><td class="titlefield">'.$langs->trans('RGWCycleRef').'</td><td>'.dol_escape_htmltag($object->ref).'</td></tr>';
-//print '<tr><td class="titlefield">'.$langs->trans('RGWSituationCycleRef').'</td><td>'.dol_escape_htmltag($object->situation_cycle_ref).'</td></tr>';
-//print '<tr><td class="titlefield">'.$langs->trans('ThirdParty').'</td><td>'.$thirdpartyLabel.'</td></tr>';
-//print '<tr><td class="titlefield">'.$langs->trans('Project').'</td><td>'.$projectLabel.'</td></tr>';
 print '<tr><td class="titlefield">'.$langs->trans('RGWReceptionDate').'</td><td>'.dol_print_date($object->date_reception, 'day').'</td></tr>';
 print '<tr><td class="titlefield">'.$langs->trans('RGWLimitDate').'</td><td>'.dol_print_date($object->date_limit, 'day').'</td></tr>';
 print '</table>';
@@ -330,8 +414,6 @@ foreach ($invoices as $invoice) {
 	// EN: Build invoice status label with fallback when helper function is missing
 	// FR: Construire le libellé de statut avec repli si la fonction helper manque
 	$invoicestatuslabel = '';
-	// EN: Use fk_statut value from invoice object for correct status
-	// FR: Utiliser la valeur fk_statut de la facture pour le bon statut
 	$invoicestatus = isset($invoice->statut) ? $invoice->statut : $invoice->status;
 	$invoicestatuslabel = $invoice->getLibStatut(5);
 
@@ -409,31 +491,38 @@ if ($action != 'prerelance' && $action != 'presend') {
 	print '<div class="fichecenter"><div class="fichehalfleft">';
 	print '<a name="builddoc"></a>'; // ancre
 
-	// Generated documents
-	$entity = (!empty($object->entity) ? (int) $object->entity : (int) $conf->entity);
+// Generated documents
+	$docEntityId = (!empty($object->entity) ? (int) $object->entity : (int) $conf->entity);
 
-	$ref = dol_sanitizeFileName($object->ref);
-	$relativepath = $object->element.'/'.$ref;	// ex: rgw_cycle/RGW-3
+	// EN: Determine base output directory for module (multicompany aware)
+	// FR: Déterminer le répertoire de sortie du module (compatible multicompany)
+	$baseOutput = '';
+	if (!empty($conf->rgwarranty->multidir_output[$docEntityId])) {
+		$baseOutput = $conf->rgwarranty->multidir_output[$docEntityId];
+	} elseif (!empty($conf->rgwarranty->dir_output)) {
+		$baseOutput = $conf->rgwarranty->dir_output;
+	} else {
+		$baseOutput = DOL_DATA_ROOT.'/rgwarranty';
+	}
+
+	$docElement = (!empty($object->element) ? $object->element : 'rgw_cycle');
+	$docRef = dol_sanitizeFileName($object->ref);
+	$relativepath = $docElement.'/'.$docRef;	// ex: rgw_cycle/RGW-3
 	$filename = $relativepath;
-	$filedir = $conf->rgwarranty->multidir_output[$entity].'/'.$relativepath;
-	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id.'&entity='.$entity;
-	$moreparams = 'id='.$object->id.'&entity='.$entity;
-	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id;
-	$genallowed = $usercanread;
-	$delallowed = $usercancreate;
+	$filedir = rtrim($baseOutput, '/').'/'.$relativepath;
+	$urlsource = $_SERVER['PHP_SELF'].'?id='.$object->id.'&entity='.$docEntityId;
+
+	$genallowed = ($permissiontowrite ? 1 : 0);
+	$delallowed = ($permissiontowrite ? 1 : 0);
 	$tooltipAfterComboOfModels = '';
 
-	$model = GETPOST('model', 'alpha');
-	if (empty($model)) $model = getDolGlobalString('RGWARRANTY_PDF_MODEL'); // ou le nom de constante que tu utilises
-
-
 	print $formfile->showdocuments(
-		'rgwarranty',
+		'rgwarranty:RGWarranty',
 		$filename,
 		$filedir,
 		$urlsource,
 		$genallowed,
-		(int) $delallowed,
+		$delallowed,
 		$object->model_pdf,
 		1,
 		0,
@@ -447,7 +536,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 		'',
 		$object,
 		0,
-		'remove_file_confirm',
+		'remove_file',
 		$tooltipAfterComboOfModels
 	);
 
@@ -462,14 +551,12 @@ if ($action != 'prerelance' && $action != 'presend') {
 	// EN: Provide shortcuts to full conversation and list
 	// FR: Fournir des raccourcis vers la conversation et la liste complètes
 	$morehtmlcenter = '<div class="nowraponall">';
-	//$morehtmlcenter .= dolGetButtonTitle($langs->trans('FullConversation'), '', 'fa fa-comments imgforviewmode', DOL_URL_ROOT.'/compta/facture/messaging.php?id='.$object->id);
-	//$morehtmlcenter .= dolGetButtonTitle($langs->trans('FullList'), '', 'fa fa-bars imgforviewmode', DOL_URL_ROOT.'/compta/facture/agenda.php?id='.$object->id);
 	$morehtmlcenter .= '</div>';
 
 	// EN: Use native helper to show actions timeline
 	// FR: Utiliser le helper natif pour afficher l'historique des actions
 	$somethingshown = $formactions->showactions($object, 'rgw_cycle', '', 1, '', $MAXEVENT, '', $morehtmlcenter);
-	
+
 	print '</div></div>';
 }
 
