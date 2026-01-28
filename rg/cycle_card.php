@@ -487,7 +487,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 			print $formfile->showdocuments('rgwarranty:RGWarranty', $object->element.'/'.$objref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang);
 		}
 
-
+/*
 	print $formfile->showdocuments(
 		$modulepart,
 		$filename,
@@ -511,7 +511,7 @@ if ($action != 'prerelance' && $action != 'presend') {
 		'remove_file',
 		$tooltipAfterComboOfModels
 	);
-
+*/
 	$somethingshown = $formfile->numoffiles;
 	print '</div>';
 	print '<div class="fichehalfright">';
